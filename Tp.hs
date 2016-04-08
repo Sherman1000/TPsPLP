@@ -56,8 +56,8 @@ normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor [] extractor = const 0
 normalizarExtractor textos extractor = (\text ->  (extractor text) / (maximum (map (abs) [(extractor texto) | texto <- textos])))
 
-extraerFeatures :: [Extractor] -> [Texto] -> Datos
-extraerFeatures = undefined
+extraerFeatures :: [Extractor] -> [Texto] -> Datos 
+extraerFeatures extractores textos = [[ normalizarExtractor textos extractor texto | extractor <- extractores] | texto <- textos]
 
 distEuclideana :: Medida
 distEuclideana = undefined
