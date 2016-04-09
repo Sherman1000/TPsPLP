@@ -89,27 +89,36 @@ productoVectorial p q = sqrt ((sumatoriaProductos p p) * (sumatoriaProductos q q
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
 knn = undefined
 
+--type Datos = [Instancia] = [Feature] = [Float]
+--[DAtos]=[[Float]]
+
 -- EJERCICIO 10
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
 separarDatos datos etiquetas n p = (getTrainDatos (partirDatos n datos) p, getValDatos (partirDatos n datos) p, getTrainEtiquetas (partirEtiquetas n etiquetas) p, getValEtiquetas (partirEtiquetas n etiquetas) p)
 
 partirDatos :: Int -> Datos -> [Datos]
-partirDatos n = foldl (\z elem -> if (length (head z)) < n then [((head z) ++ [elem])] ++ (tail z) else (z ++ [[elem]])) [[]]
+partirDatos n datos = sacarInvalidosD (foldl (\z elem -> if (length (last z)) < (div (length datos) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] datos) n
+
+sacarInvalidosD :: [Datos] -> Int -> [Datos]
+sacarInvalidosD datos n = if (length (last datos)) < n then init datos else datos
+
+sacarInvalidosE :: [[Etiqueta]] -> Int -> [[Etiqueta]]
+sacarInvalidosE etiquetas n = if (length (last etiquetas)) < n then init etiquetas else etiquetas
 
 partirEtiquetas :: Int -> [Etiqueta] -> [[Etiqueta]]
-partirEtiquetas n = foldl (\z elem -> if (length (head z)) < n then [((head z) ++ [elem])] ++ (tail z) else (z ++ [[elem]])) [[]]
+partirEtiquetas n etiquetas = sacarInvalidosE (foldl (\z elem -> if (length (last z)) < (div (length etiquetas) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] etiquetas) n
 
 getTrainDatos :: [Datos] -> Int -> Datos
-getTrainDatos datos n = concat ((take (n-1) datos) ++ (drop n datos))
+getTrainDatos datos p = concat ((take (p-1) datos) ++ (drop p datos))
 
 getTrainEtiquetas :: [[Etiqueta]] -> Int -> [Etiqueta]
 getTrainEtiquetas etiquetas n = concat ((take (n-1) etiquetas) ++ (drop n etiquetas))
 
 getValDatos :: [Datos] -> Int -> Datos
-getValDatos datos n = concat (tail (take n datos))
+getValDatos datos n = last (take n datos)
 
 getValEtiquetas :: [[Etiqueta]] -> Int -> [Etiqueta]
-getValEtiquetas etiquetas n = concat (tail (take n etiquetas))
+getValEtiquetas etiquetas n = last (take n etiquetas)
 
 -- EJERCICIO 11
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
