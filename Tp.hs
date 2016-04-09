@@ -71,7 +71,7 @@ distEuclideana :: Medida
 distEuclideana p q = sqrt (sum (binomiosCuadrado p q) )
 
 binomiosCuadrado:: Instancia -> Instancia -> [Float]
-binomiosCuadrado p q = map (**2) (zipWith (-) p q)
+binomiosCuadrado p q = map (\x -> x*x) (zipWith (-) p q)
 
 distCoseno :: Medida
 distCoseno p q = (sumatoriaProductos p q) / (productoVectorial p q)
@@ -86,8 +86,17 @@ productoVectorial :: Medida
 productoVectorial p q = sqrt ((sumatoriaProductos p p) * (sumatoriaProductos q q))
 
 -- EJERCICIO 9
+tupleComparator:: (Ord a, Ord b) => (a,b) -> (a,b) -> Ordering
+tupleComparator (a1,b1) (a2,b2) |a1 < a2 = LT
+								|a1 > a2 = GT
+								|a1 == a2 = compare b1 b2
+
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
-knn = undefined
+knn n matrizDatos etiquetas fDistancia =  (\aEtiquetar -> findModa n (zip (map ((\instancia -> \dato -> fDistancia dato instancia) aEtiquetar) matrizDatos) etiquetas) etiquetas) 
+										
+
+findModa:: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
+findModa n distancesNLabels etiquetas = snd (maximumBy tupleComparator [(length(filter ((\label -> \tupla -> label==(snd tupla)) etiquetaActual) (take n (sortBy tupleComparator distancesNLabels))), etiquetaActual) | etiquetaActual <- (sinRepetidos etiquetas)])
 
 --type Datos = [Instancia] = [Feature] = [Float]
 --[DAtos]=[[Float]]
