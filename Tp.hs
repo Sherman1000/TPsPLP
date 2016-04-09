@@ -92,12 +92,26 @@ tupleComparator (a1,b1) (a2,b2) |a1 < a2 = LT
 								|a1 == a2 = compare b1 b2
 
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
-knn n matrizDatos etiquetas fDistancia =  (\aEtiquetar -> findModa n (zip (map ((\instancia -> \dato -> fDistancia dato instancia) aEtiquetar) matrizDatos) etiquetas) etiquetas) 
+knn n matrizDatos etiquetas fDistancia =  (\instancia -> findModa n (crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos ) etiquetas)
+										where crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos =
+														(zip (map ((\inst dato -> fDistancia dato inst) instancia) matrizDatos) etiquetas)
 										
 
 findModa:: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
-findModa n distancesNLabels etiquetas = snd (maximumBy tupleComparator [(length(filter ((\label -> \tupla -> label==(snd tupla)) etiquetaActual) (take n (sortBy tupleComparator distancesNLabels))), etiquetaActual) | etiquetaActual <- (sinRepetidos etiquetas)])
+findModa n relacionDistanciaEtiqueta etiquetas = snd (maximumBy tupleComparator (contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas))
 
+contadorDeNMejoresEtiquetas:: Int -> [(Float, Etiqueta)] -> [Etiqueta]  -> [(Int, Etiqueta)]
+contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas = 
+						[((cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta), etiqueta) | etiqueta <- (sinRepetidos etiquetas)]
+
+cantidadAparicionesEnMejoresN:: Int -> [(Float, Etiqueta)] -> Etiqueta -> Int
+cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta = 
+						length(filter (matcheaEtiqueta etiqueta)(take n relacionDistanciaEtiquetaOrdenada))
+							where relacionDistanciaEtiquetaOrdenada = sortBy tupleComparator relacionDistanciaEtiqueta
+
+matcheaEtiqueta:: Etiqueta -> (Float, Etiqueta) -> Bool
+matcheaEtiqueta etiqueta = ((\label tupla -> label==(snd tupla)) etiqueta)
+							
 --type Datos = [Instancia] = [Feature] = [Float]
 --[DAtos]=[[Float]]
 
