@@ -117,31 +117,22 @@ matcheaEtiqueta etiqueta = ((\label tupla -> label==(snd tupla)) etiqueta)
 
 -- EJERCICIO 10
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos datos etiquetas n p = (getTrainDatos (partirDatos n datos) p, getValDatos (partirDatos n datos) p, getTrainEtiquetas (partirEtiquetas n etiquetas) p, getValEtiquetas (partirEtiquetas n etiquetas) p)
+separarDatos datos etiquetas n p = (getTrain (partirDatos n datos) p, getVal (partirDatos n datos) p, getTrain (partirEtiquetas n etiquetas) p, getVal (partirEtiquetas n etiquetas) p)
 
 partirDatos :: Int -> Datos -> [Datos]
-partirDatos n datos = sacarInvalidosD (foldl (\z elem -> if (length (last z)) < (div (length datos) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] datos) n
+partirDatos n datos = sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length datos) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] datos) n
 
-sacarInvalidosD :: [Datos] -> Int -> [Datos]
-sacarInvalidosD datos n = if (length (last datos)) < n then init datos else datos
-
-sacarInvalidosE :: [[Etiqueta]] -> Int -> [[Etiqueta]]
-sacarInvalidosE etiquetas n = if (length (last etiquetas)) < n then init etiquetas else etiquetas
+sacarInvalidos::[[a]] -> Int -> [[a]]
+sacarInvalidos datos n = if (length (last datos)) < n then init datos else datos
 
 partirEtiquetas :: Int -> [Etiqueta] -> [[Etiqueta]]
-partirEtiquetas n etiquetas = sacarInvalidosE (foldl (\z elem -> if (length (last z)) < (div (length etiquetas) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] etiquetas) n
+partirEtiquetas n etiquetas = sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length etiquetas) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] etiquetas) n
 
-getTrainDatos :: [Datos] -> Int -> Datos
-getTrainDatos datos p = concat ((take (p-1) datos) ++ (drop p datos))
+getTrain:: [[a]] -> Int -> [a]
+getTrain datos p = concat ((take (p-1) datos) ++ (drop p datos))
 
-getTrainEtiquetas :: [[Etiqueta]] -> Int -> [Etiqueta]
-getTrainEtiquetas etiquetas n = concat ((take (n-1) etiquetas) ++ (drop n etiquetas))
-
-getValDatos :: [Datos] -> Int -> Datos
-getValDatos datos n = last (take n datos)
-
-getValEtiquetas :: [[Etiqueta]] -> Int -> [Etiqueta]
-getValEtiquetas etiquetas n = last (take n etiquetas)
+getVal::[a] -> Int -> a
+getVal datos n = last (take n datos)
 
 -- EJERCICIO 11
 accuracy :: [Etiqueta] -> [Etiqueta] -> Float
@@ -150,5 +141,6 @@ accuracy e1 e2 = sumaIguales (zip e1 e2) / fromIntegral (length (zip e1 e2))
 sumaIguales:: [(String, String)] -> Float
 sumaIguales = foldr (\t rec -> if fst t == snd t then 1+rec else rec) 0
 
+-- EJERCICIO 12
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation = undefined
