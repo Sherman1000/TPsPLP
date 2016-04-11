@@ -19,48 +19,56 @@ tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repetic
 mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
+sinRepetidos :: Eq a => [a] -> [a]
+sinRepetidos = nub
+
+listaDePalabras:: [Char] -> [[Char]]
+listaDePalabras xs = split ' ' xs
+
+tupleComparator:: (Ord a, Ord b) => (a,b) -> (a,b) -> Ordering
+tupleComparator (a1,b1) (a2,b2) |a1 < a2 = LT
+								|a1 > a2 = GT
+								|a1 == a2 = compare b1 b2
+
 -- EJERCICIO 1
 split :: Eq a => a -> [a] -> [[a]]
-split comparator = foldr f [[]]
-		where f =(\x xss -> if x == comparator 
+split elementoSeparador = foldr f [[]]
+		where f =(\x xss -> if x == elementoSeparador
 							then [] : xss 
 							else (x : head(xss)) : tail(xss))
 				
 -- EJERCICIO 2
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras xs =  mean (map (\x -> genericLength x) (split ' ' xs))
+longitudPromedioPalabras xs =  mean (map (\x -> genericLength x) (listaDePalabras xs))
 
 -- EJERCICIO 3
 cuentas :: Eq a => [a] -> [(Int, a)]
 cuentas xs = zip ([length (filter ((\z -> \x -> x==z) y) xs)| y <- sinRepetidos xs]) (sinRepetidos xs)
 
-sinRepetidos :: Eq a => [a] -> [a]
-sinRepetidos = nub
-
 -- EJERCICIO 4
 repeticionesPromedio :: Extractor
-repeticionesPromedio xs = mean ( map (\tupla -> fromIntegral(fst tupla)) (cuentas (split ' ' xs)))
+repeticionesPromedio xs = mean ( map (\tupla -> fromIntegral(fst tupla)) (cuentas (listaDePalabras xs)))
 
 tokens :: [Char]
 tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
 
 -- EJERCICIO 5
--- PREGUNTAR SI HAY QUE USAR REPETICIONES PROMEDIO!!!!
 frecuenciaTokens :: [Extractor]
 frecuenciaTokens = [ extractorAPartirDe token | token <- tokens ]
 
 extractorAPartirDe :: Char -> [Char] -> Float
-extractorAPartirDe token xs = fromIntegral (buscarValorEnTupla (filtrar token)) / fromIntegral( (sum (map (\tupla -> fst tupla) (cuentas xs))))
-							where filtrar token = (filter ((\tok tupla -> (snd tupla)==tok) token) (cuentas xs))
+extractorAPartirDe token xs = fromIntegral (obtenerValorEnTupla (filtrar token)) / fromIntegral( (sum (map (\tupla -> fst tupla) (cuentas xs))))
+							where filtrar token = (filter ((\item tupla -> (snd tupla)==item) token) (cuentas xs))
 						
-buscarValorEnTupla:: [(Int, a)] -> Int
-buscarValorEnTupla [] = 0
-buscarValorEnTupla [x] = fst x 
+obtenerValorEnTupla:: [(Int, a)] -> Int
+obtenerValorEnTupla [] = 0
+obtenerValorEnTupla [x] = fst x 
 
 -- EJERCICIO 6
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor [] extractor = const 0
-normalizarExtractor textos extractor = (\text ->  (extractor text) / (maximum (map (abs) [(extractor texto) | texto <- textos])))
+normalizarExtractor textos extractor = (\text ->  (extractor text) / maximoFeature)
+		where maximoFeature = maximum (map (abs) [(extractor texto) | texto <- textos])
 
 -- EJERCICIO 7
 extraerFeatures :: [Extractor] -> [Texto] -> Datos 
@@ -86,47 +94,36 @@ productoVectorial :: Medida
 productoVectorial p q = sqrt ((sumatoriaProductos p p) * (sumatoriaProductos q q))
 
 -- EJERCICIO 9
-tupleComparator:: (Ord a, Ord b) => (a,b) -> (a,b) -> Ordering
-tupleComparator (a1,b1) (a2,b2) |a1 < a2 = LT
-								|a1 > a2 = GT
-								|a1 == a2 = compare b1 b2
-
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
-knn n matrizDatos etiquetas fDistancia =  (\instancia -> findModa n (crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos ) etiquetas)
-										where crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos =
-														(zip (map ((\inst dato -> fDistancia dato inst) instancia) matrizDatos) etiquetas)
+knn n matrizDatos etiquetas fDistancia =  (\instancia -> calcularModaAPartirDeNMejores n (crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos) 											etiquetas)
+		where crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos = 
+				zip (map ((\inst dato -> fDistancia dato inst) instancia) matrizDatos) etiquetas
 										
 
-findModa:: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
-findModa n relacionDistanciaEtiqueta etiquetas = snd (maximumBy tupleComparator (contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas))
+calcularModaAPartirDeNMejores:: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
+calcularModaAPartirDeNMejores n relacionDistanciaEtiqueta etiquetas = snd (maximumBy tupleComparator (contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta 																			etiquetas))
 
 contadorDeNMejoresEtiquetas:: Int -> [(Float, Etiqueta)] -> [Etiqueta]  -> [(Int, Etiqueta)]
 contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas = 
-						[((cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta), etiqueta) | etiqueta <- (sinRepetidos etiquetas)]
+		[((cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta), etiqueta) | etiqueta <- (sinRepetidos etiquetas)]
 
 cantidadAparicionesEnMejoresN:: Int -> [(Float, Etiqueta)] -> Etiqueta -> Int
-cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta = 
-						length(filter (matcheaEtiqueta etiqueta)(take n relacionDistanciaEtiquetaOrdenada))
-							where relacionDistanciaEtiquetaOrdenada = sortBy tupleComparator relacionDistanciaEtiqueta
+cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta = length(filter (matcheaEtiqueta etiqueta)(take n relacionDistanciaEtiquetaOrdenada))
+		where relacionDistanciaEtiquetaOrdenada = sortBy tupleComparator relacionDistanciaEtiqueta
 
 matcheaEtiqueta:: Etiqueta -> (Float, Etiqueta) -> Bool
-matcheaEtiqueta etiqueta = ((\label tupla -> label==(snd tupla)) etiqueta)
-							
---type Datos = [Instancia] = [Feature] = [Float]
---[DAtos]=[[Float]]
+matcheaEtiqueta etiqueta = (\label tupla -> label==(snd tupla)) etiqueta
 
 -- EJERCICIO 10
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos datos etiquetas n p = (getTrain (partirDatos n datos) p, getVal (partirDatos n datos) p, getTrain (partirEtiquetas n etiquetas) p, getVal (partirEtiquetas n etiquetas) p)
-
-partirDatos :: Int -> Datos -> [Datos]
-partirDatos n datos = sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length datos) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] datos) n
+separarDatos datos etiquetas n p = (getTrain (partirInfoEnN n datos) p, getVal (partirInfoEnN n datos) p, 
+									getTrain (partirInfoEnN n etiquetas) p, getVal (partirInfoEnN n etiquetas) p)
 
 sacarInvalidos::[[a]] -> Int -> [[a]]
 sacarInvalidos datos n = if (length (last datos)) < n then init datos else datos
-
-partirEtiquetas :: Int -> [Etiqueta] -> [[Etiqueta]]
-partirEtiquetas n etiquetas = sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length etiquetas) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] etiquetas) n
+									
+partirInfoEnN:: Int -> [a] -> [[a]]
+partirInfoEnN n datos = sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length datos) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] datos) n
 
 getTrain:: [[a]] -> Int -> [a]
 getTrain datos p = concat ((take (p-1) datos) ++ (drop p datos))
