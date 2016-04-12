@@ -110,15 +110,19 @@ calcularModaAPartirDeNMejores n relacionDistanciaEtiqueta etiquetas = snd (maxim
 -- cantidadAparicionesEnMejoresN toma la cantidad de apariciones de la etiqueta en las N mejores tuplas (asegurado por relacionDistanciaEtiquetaOrdenada).
 
 -- EJERCICIO 10
+-- PartirInfoEnN divide la información en n conjuntos
+-- SacarInvalidos toma la infomación dividida en n conjuntos y verifica que todos sean del mismo tamaño
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
 separarDatos datos etiquetas n p = (getTrain (partirInfoEnN n datos) p, getVal (partirInfoEnN n datos) p, 
 									getTrain (partirInfoEnN n etiquetas) p, getVal (partirInfoEnN n etiquetas) p)
 	where partirInfoEnN n info = sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length info) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] info) n
 		where sacarInvalidos datos n = if (length (last datos)) < n then init datos else datos
 
+-- Devuelve los datos o etiquetas que se utilizaran para entrenamiento
 getTrain:: [[a]] -> Int -> [a]
 getTrain datos p = concat ((take (p-1) datos) ++ (drop p datos))
 
+-- Devuelve los datos o etiquetas que se utilizan para validacion 
 getVal::[a] -> Int -> a
 getVal datos n = last (take n datos)
 
@@ -128,10 +132,12 @@ accuracy e1 e2 = sumaIguales (zip e1 e2) / fromIntegral (length (zip e1 e2))
 	where sumaIguales = foldr (\t rec -> if fst t == snd t then 1+rec else rec) 0
 
 -- EJERCICIO 12
+-- separarDatosEnN separa los datos en conjuntos de tamaño n y varía el conjunto que toma para validación (este se elige de 1 a n)
 nFoldCrossValidation :: Int -> Datos -> [Etiqueta] -> Float
 nFoldCrossValidation n datos etiquetas = mean (accuracyN (separarDatosEnN datos etiquetas n n))
 	where separarDatosEnN datos etiquetas n p = if p == 0 then [] else (separarDatos datos etiquetas n p) : (separarDatosEnN datos etiquetas n (p-1))
 
+-- Esta función calcula el accuracy entre las etiquetas aprendidas y las de validación. Las aprendidas son calculadas con la función knn.
 accuracyN :: [(Datos, Datos, [Etiqueta], [Etiqueta])] -> [Float]
 accuracyN muestra = map (\tupla -> accuracy (fst tupla) (snd tupla)) (zip (knnN muestra) (map (\cuadrupla -> fourth4 cuadrupla) muestra))
 	where knnN = foldr (\x rec -> (calculateKnn x) : rec) []
