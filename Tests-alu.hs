@@ -163,7 +163,13 @@ accuracyTest3 = TestCase (assertEqual "100% accuracy" 1 accuracy100)
 
 --Test separarDatos, Ejercicio 12--
 
+twoFoldValidation = nFoldCrossValidation 2 [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9],[10,10]] ["i","f","f","i","i","i","i","i","i","i"]
+threeFoldValidation = nFoldCrossValidation 3 [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9],[10,10]] ["i","f","f","i","i","i","i","i","i","i"]
+fourFoldValidation = nFoldCrossValidation 4 [[1,1],[2,2],[3,3],[4,4],[5,5],[6,6],[7,7],[8,8],[9,9],[10,10]] ["i","f","f","i","i","i","i","i","i","i"]
 
+test2FoldValidation = TestCase (assertEqual "2FoldValidation" 0.8 twoFoldValidation)
+test3FoldValidation = TestCase (assertEqual "3FoldValidation" (formatFloatN 0.7777777 3) (formatFloatN threeFoldValidation 3))
+test4FoldValidation = TestCase (assertEqual "4FoldValidation" 0.75 fourFoldValidation)
 -------------------------------------------------------------------------------------------------------------------------------
 testsSplit = TestList [TestLabel "splitTest1" splitTest1, TestLabel "splitTest2" splitTest2, TestLabel "splitTest3" splitTest3,
 				  TestLabel "splitTest4" splitTest4, TestLabel "splitTest5" splitTest5, TestLabel "splitTest6" splitTest6]
@@ -193,6 +199,8 @@ testAccuracy = TestList [TestLabel "accuracyTest1" accuracyTest1, TestLabel "acc
 
 testSepararDatos = TestList [TestLabel "separarDatosTest" separarDatosTest]
 
+testNFoldCrossValidation = TestList [TestLabel "test2FoldValidation" test2FoldValidation, TestLabel "test3FoldValidation" test3FoldValidation, TestLabel "test4FoldValidation" test4FoldValidation]
+
 --------------------------------------------------------------------------------
 allTestsAlu = TestList [TestLabel "splitTest1" splitTest1, TestLabel "splitTest2" splitTest2, TestLabel "splitTest3" splitTest3,
 				  TestLabel "splitTest4" splitTest4, TestLabel "splitTest5" splitTest5, TestLabel "splitTest6" splitTest6,
@@ -209,5 +217,5 @@ allTestsAlu = TestList [TestLabel "splitTest1" splitTest1, TestLabel "splitTest2
 				  TestLabel "normalizarExtractorTest1" normalizarExtractorTest1, TestLabel "distanciaEuclideanaTest1" distanciaEuclideanaTest1, TestLabel "distanciaEuclideanaTest2" distanciaEuclideanaTest2, TestLabel "distanciaEuclideanaTest3" distanciaEuclideanaTest3,
 				  TestLabel "distanciaCosenoTest1" distanciaCosenoTest1, TestLabel "distanciaCosenoTest2" distanciaCosenoTest2, TestLabel "distanciaCosenoTest3" distanciaCosenoTest3,
 				  TestLabel "knnTest" knnTest, TestLabel "accuracyTest1" accuracyTest1, TestLabel "accuracyTest1" accuracyTest2, TestLabel "accuracyTest3" accuracyTest3,
-				  TestLabel "separarDatosTest" separarDatosTest]
+				  TestLabel "separarDatosTest" separarDatosTest, TestLabel "test2FoldValidation" test2FoldValidation, TestLabel "test3FoldValidation" test3FoldValidation, TestLabel "test4FoldValidation" test4FoldValidation]
 --------------------------------------------------------------------------------
