@@ -102,12 +102,17 @@ knn n matrizDatos etiquetas fDistancia =  (\instancia -> calcularModaAPartirDeNM
 -- En nuestro caso, fue utilizada para poder comparar por el valor númerico de la tupla. 										
 calcularModaAPartirDeNMejores:: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
 calcularModaAPartirDeNMejores n relacionDistanciaEtiqueta etiquetas = snd (maximumBy tupleComparator (contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta 																			etiquetas))
-		where contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas = 
-			[((cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta), etiqueta) | etiqueta <- (nub etiquetas)]
+
+contadorDeNMejoresEtiquetas:: Int -> [(Float, Etiqueta)] -> [Etiqueta]  -> [(Int, Etiqueta)]
+contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas = 
+		[((cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta), etiqueta) | etiqueta <- (nub etiquetas)]
 			where cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta = 
-				length(filter ((\label tupla -> label==(snd tupla)) etiqueta) (tomarNMaximos n relacionDistanciaEtiqueta))
-				where tomarNMaximos n relacionDistanciaEtiqueta = if n == 0 then [] else [(minimumBy tupleComparator relacionDistanciaEtiqueta)]++(tomarNMaximos (n-1) ([item | item <- relacionDistanciaEtiqueta, not(item == (maximumBy tupleComparator relacionDistanciaEtiqueta))]))	
+				length(filter (matcheaEtiqueta etiqueta)(take n relacionDistanciaEtiquetaOrdenada))
+					where relacionDistanciaEtiquetaOrdenada = sortBy tupleComparator relacionDistanciaEtiqueta
 -- cantidadAparicionesEnMejoresN toma la cantidad de apariciones de la etiqueta en las N mejores tuplas (asegurado por relacionDistanciaEtiquetaOrdenada).
+
+matcheaEtiqueta:: Etiqueta -> (Float, Etiqueta) -> Bool
+matcheaEtiqueta etiqueta = (\label tupla -> label==(snd tupla)) etiqueta
 
 -- EJERCICIO 10
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
