@@ -19,9 +19,11 @@ tryClassifier x y = let xs = extraerFeatures ([longitudPromedioPalabras, repetic
 mean :: [Float] -> Float
 mean xs = realToFrac (sum xs) / genericLength xs
 
+-- Función agregada por código repetido y por declaratividad. Se sacó del código y se reemplazo por where debido a que ralentiza el tiempo de ejecución.
 listaDePalabras:: [Char] -> [[Char]]
 listaDePalabras xs = split ' ' xs
 
+-- Esta función se realizó en inglés por consistencia con el uso de lo provisto por las líbrerias.
 tupleComparator:: (Ord a, Ord b) => (a,b) -> (a,b) -> Ordering
 tupleComparator (a1,b1) (a2,b2) |a1 < a2 = LT
 								|a1 > a2 = GT
@@ -41,16 +43,19 @@ longitudPromedioPalabras xs =  mean (map (\x -> genericLength x) (listaDePalabra
 
 -- EJERCICIO 3
 cuentas :: Eq a => [a] -> [(Int, a)]
-cuentas xs = zip ([length (filter ((\z -> \x -> x==z) y) xs)| y <- nub xs]) (nub xs)
+cuentas xs = zip cantidadDeRepeticiones (nub xs)
+		where cantidadDeRepeticiones = [length (filter ((\z -> \x -> x==z) y) xs)| y <- nub xs]
 
 -- EJERCICIO 4
 repeticionesPromedio :: Extractor
 repeticionesPromedio xs = mean ( map (\tupla -> fromIntegral(fst tupla)) (cuentas (listaDePalabras xs)))
+		where listaDePalabras xs = split ' ' xs 
 
 tokens :: [Char]
 tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789"
 
 -- EJERCICIO 5
+-- Los fromIntegral transforman a Float los Int. Se debe tener en cuenta el mismo comentario que en el ejercicio 4.
 frecuenciaTokens :: [Extractor]
 frecuenciaTokens = [ extractorAPartirDe token | token <- tokens ]
 	where extractorAPartirDe token xs = fromIntegral (obtenerValorEnTupla (filtrar token)) / fromIntegral( (sum (map (\tupla -> fst tupla) (cuentas xs))))
@@ -86,22 +91,25 @@ productoVectorial :: Medida
 productoVectorial p q = sqrt ((sumatoriaProductos p p) * (sumatoriaProductos q q))
 
 -- EJERCICIO 9
+-- knn delega la obtención de la Etiqueta que devuelve el Modelo. Se encarga de devolver la función (Instancia -> Etiqueta)
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
 knn n matrizDatos etiquetas fDistancia =  (\instancia -> calcularModaAPartirDeNMejores n (crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos) 											etiquetas)
 		where crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos = 
 				zip (map ((\inst dato -> fDistancia dato inst) instancia) matrizDatos) etiquetas
-										
+-- crearRelacionDistanciaEtiqueta une en una tupla las etiquetas con la aplicación de la función fDistancia.
 
+-- maximumBy es una función de Data.List. Toma un comparador (tupleComparator) y una lista y devuelve la lista ordenada en base al comparador.
+-- En nuestro caso, fue utilizada para poder comparar por el valor númerico de la tupla. 										
 calcularModaAPartirDeNMejores:: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
 calcularModaAPartirDeNMejores n relacionDistanciaEtiqueta etiquetas = snd (maximumBy tupleComparator (contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta 																			etiquetas))
 
 contadorDeNMejoresEtiquetas:: Int -> [(Float, Etiqueta)] -> [Etiqueta]  -> [(Int, Etiqueta)]
 contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas = 
 		[((cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta), etiqueta) | etiqueta <- (nub etiquetas)]
-
-cantidadAparicionesEnMejoresN:: Int -> [(Float, Etiqueta)] -> Etiqueta -> Int
-cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta = length(filter (matcheaEtiqueta etiqueta)(take n relacionDistanciaEtiquetaOrdenada))
-		where relacionDistanciaEtiquetaOrdenada = sortBy tupleComparator relacionDistanciaEtiqueta
+			where cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta = 
+				length(filter (matcheaEtiqueta etiqueta)(take n relacionDistanciaEtiquetaOrdenada))
+					where relacionDistanciaEtiquetaOrdenada = sortBy tupleComparator relacionDistanciaEtiqueta
+-- cantidadAparicionesEnMejoresN toma la cantidad de apariciones de la etiqueta en las N mejores tuplas (asegurado por relacionDistanciaEtiquetaOrdenada).
 
 matcheaEtiqueta:: Etiqueta -> (Float, Etiqueta) -> Bool
 matcheaEtiqueta etiqueta = (\label tupla -> label==(snd tupla)) etiqueta
