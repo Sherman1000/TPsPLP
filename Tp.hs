@@ -29,26 +29,28 @@ tupleComparator (a1,b1) (a2,b2) |a1 < a2 = LT
 								|a1 > a2 = GT
 								|a1 == a2 = compare b1 b2
 
+
+
 -- EJERCICIO 1
 split :: Eq a => a -> [a] -> [[a]]
-split elementoSeparador = foldr f [[]]
+split elementoSeparador xs= filter (\word -> length word > 0) (foldr f [[]] xs)
 		where f =(\x xss -> if x == elementoSeparador
 							then [] : xss 
 							else (x : head(xss)) : tail(xss))
-				
+
 -- EJERCICIO 2
 longitudPromedioPalabras :: Extractor
-longitudPromedioPalabras xs =  mean (map (\x -> genericLength x) (listaDePalabras xs))
+longitudPromedioPalabras xs =  mean (map genericLength (listaDePalabras xs))
 	where listaDePalabras xs = split ' ' xs
 
 -- EJERCICIO 3
 cuentas :: Eq a => [a] -> [(Int, a)]
 cuentas xs = zip cantidadDeRepeticiones (nub xs)
-		where cantidadDeRepeticiones = [length (filter ((\z -> \x -> x==z) y) xs)| y <- nub xs]
+		where cantidadDeRepeticiones = [length (filter (== y) xs)| y <- nub xs]
 
 -- EJERCICIO 4
 repeticionesPromedio :: Extractor
-repeticionesPromedio xs = mean ( map (\tupla -> fromIntegral(fst tupla)) (cuentas (listaDePalabras xs)))
+repeticionesPromedio xs = mean ( map (\tupla -> fromIntegral (fst tupla)) (cuentas (listaDePalabras xs)))
 		where listaDePalabras xs = split ' ' xs 
 
 tokens :: [Char]
@@ -69,11 +71,11 @@ obtenerValorEnTupla [x] = fst x
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor [] extractor = const 0
 normalizarExtractor textos extractor = (\text ->  (extractor text) / maximoFeature)
-		where maximoFeature = maximum (map (abs) [(extractor texto) | texto <- textos])
+		where maximoFeature = maximum (map abs [(extractor texto) | texto <- textos])
 
 -- EJERCICIO 7
 extraerFeatures :: [Extractor] -> [Texto] -> Datos 
-extraerFeatures extractores textos = [[ normalizarExtractor textos extractor texto | extractor <- extractores] | texto <- textos]
+extraerFeatures extractores textos = [[ esNormalizador texto |  extractor <- extractores, let esNormalizador = normalizarExtractor textos extractor] | texto <- textos]
 
 -- EJERCICIO 8
 distEuclideana :: Medida
