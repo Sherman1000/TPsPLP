@@ -30,7 +30,7 @@ readAll category = do
   return $ (tags, contents)
 
 main = do
-    (tags1, contents1) <- readAll "funcional"
+    (tags1, contents1) <- readAll "funcional" 
     (tags2, contents2) <- readAll "imperativo"
     -- (tagsUnk, contentsUnk) <- readAll "alumnos"
     print $ "Funcional: " ++ (show $ length tags1) ++ " instancias"

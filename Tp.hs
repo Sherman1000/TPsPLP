@@ -1,7 +1,7 @@
 module Tp where
 
 import Data.List
-
+import System.IO
 type Texto = String
 type Feature = Float
 type Instancia = [Feature]
@@ -22,14 +22,6 @@ mean xs = realToFrac (sum xs) / genericLength xs
 -- Función agregada por código repetido y por declaratividad. Se sacó del código y se reemplazo por where debido a que ralentiza el tiempo de ejecución.
 listaDePalabras:: [Char] -> [[Char]]
 listaDePalabras xs = split ' ' xs
-
--- Esta función se realizó en inglés por consistencia con el uso de lo provisto por las líbrerias.
-tupleComparator:: (Ord a, Ord b) => (a,b) -> (a,b) -> Ordering
-tupleComparator (a1,b1) (a2,b2) |a1 < a2 = LT
-								|a1 > a2 = GT
-								|a1 == a2 = compare b1 b2
-
-
 
 -- EJERCICIO 1
 split :: Eq a => a -> [a] -> [[a]]
@@ -60,23 +52,22 @@ tokens = "_,)(*;-=>/.{}\"&:+#[]<|%!\'@?~^$` abcdefghijklmnopqrstuvwxyz0123456789
 -- Los fromIntegral transforman a Float los Int. Se debe tener en cuenta el mismo comentario que en el ejercicio 4.
 frecuenciaTokens :: [Extractor]
 frecuenciaTokens = [ extractorAPartirDe token | token <- tokens ]
-	where extractorAPartirDe token xs = fromIntegral (obtenerValorEnTupla (filtrar token)) / fromIntegral( (sum (map (\tupla -> fst tupla) (cuentas xs))))
+	where extractorAPartirDe token xs = fromIntegral (fstDeLaUnicaTuplaEnLista (filtrar token)) / fromIntegral( (sum (map (\tupla -> fst tupla) (cuentas xs))))
 		where filtrar token = (filter ((\item tupla -> (snd tupla)==item) token) (cuentas xs))
 						
-obtenerValorEnTupla:: [(Int, a)] -> Int
-obtenerValorEnTupla [] = 0
-obtenerValorEnTupla [x] = fst x 
+fstDeLaUnicaTuplaEnLista :: [(Int, a)] -> Int
+fstDeLaUnicaTuplaEnLista [] = 0
+fstDeLaUnicaTuplaEnLista [x] = fst x 
 
 -- EJERCICIO 6
 normalizarExtractor :: [Texto] -> Extractor -> Extractor
 normalizarExtractor [] extractor = const 0
-normalizarExtractor textos extractor = (\text ->  (extractor text) / maximoFeature)
-		where maximoFeature = maximum (map abs [(extractor texto) | texto <- textos])
+normalizarExtractor textos extractor = let maximoFeature = maximum (map abs [(extractor texto) | texto <- textos]) in (\text -> (extractor text) / maximoFeature)
 
 -- EJERCICIO 7
 extraerFeatures :: [Extractor] -> [Texto] -> Datos 
-extraerFeatures extractores textos = [[ esNormalizador texto |  extractor <- extractores, let esNormalizador = normalizarExtractor textos extractor] | texto <- textos]
-
+extraerFeatures extractores textos = let extractoresNorm = map (\extr -> normalizarExtractor textos extr) extractores in
+									map (\text-> (map (\normExtr -> normExtr text) extractoresNorm)) textos
 -- EJERCICIO 8
 distEuclideana :: Medida
 distEuclideana p q = sqrt (sum (binomiosCuadrado p q) )
@@ -92,25 +83,20 @@ sumatoriaProductos p q = sum (productos p q)
 productoVectorial :: Medida
 productoVectorial p q = sqrt ((sumatoriaProductos p p) * (sumatoriaProductos q q))
 
+
 -- EJERCICIO 9
 -- knn delega la obtención de la Etiqueta que devuelve el Modelo. Se encarga de devolver la función (Instancia -> Etiqueta)
 knn :: Int -> Datos -> [Etiqueta] -> Medida -> Modelo
-knn n matrizDatos etiquetas fDistancia =  (\instancia -> calcularModaAPartirDeNMejores n (crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos) 											etiquetas)
-		where crearRelacionDistanciaEtiqueta instancia etiquetas matrizDatos = 
-				zip (map ((\inst dato -> fDistancia dato inst) instancia) matrizDatos) etiquetas
--- crearRelacionDistanciaEtiqueta une en una tupla las etiquetas con la aplicación de la función fDistancia.
-
--- maximumBy es una función de Data.List. Toma un comparador (tupleComparator) y una lista y devuelve la lista ordenada en base al comparador.
--- En nuestro caso, fue utilizada para poder comparar por el valor númerico de la tupla. 										
-calcularModaAPartirDeNMejores:: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
-calcularModaAPartirDeNMejores n relacionDistanciaEtiqueta etiquetas = snd (maximumBy tupleComparator (contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta 																			etiquetas))
+knn n matrizDatos etiquetas fDistancia = (\instancia -> let distEntreDatosEInstancia = zip (map (\dato -> fDistancia dato instancia) matrizDatos) etiquetas
+										 in moda n distEntreDatosEInstancia etiquetas)
+moda :: Int -> [(Float, Etiqueta)] -> [Etiqueta] -> Etiqueta
+moda n relacionDistanciaEtiqueta etiquetas = snd (maximumBy compare (contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas))
 
 contadorDeNMejoresEtiquetas:: Int -> [(Float, Etiqueta)] -> [Etiqueta]  -> [(Int, Etiqueta)]
-contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas = 
-		[((cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta), etiqueta) | etiqueta <- (nub etiquetas)]
-			where cantidadAparicionesEnMejoresN n relacionDistanciaEtiqueta etiqueta = 
-				length(filter (matcheaEtiqueta etiqueta)(take n relacionDistanciaEtiquetaOrdenada))
-					where relacionDistanciaEtiquetaOrdenada = sortBy tupleComparator relacionDistanciaEtiqueta
+contadorDeNMejoresEtiquetas n relacionDistanciaEtiqueta etiquetas = let ordenadosXDistancia = (sortBy compare relacionDistanciaEtiqueta) in
+																	let	nMasCercanos = (take n ordenadosXDistancia) 
+															   		 	etiquetasSinRepetidos = (nub etiquetas)
+		in [(aparicionesEtiqueta, etiqueta) | etiqueta <- etiquetasSinRepetidos, let aparicionesEtiqueta = length(filter (matcheaEtiqueta etiqueta) nMasCercanos) ]					
 -- cantidadAparicionesEnMejoresN toma la cantidad de apariciones de la etiqueta en las N mejores tuplas (asegurado por relacionDistanciaEtiquetaOrdenada).
 
 matcheaEtiqueta:: Etiqueta -> (Float, Etiqueta) -> Bool
@@ -118,10 +104,13 @@ matcheaEtiqueta etiqueta = (\label tupla -> label==(snd tupla)) etiqueta
 
 -- EJERCICIO 10
 separarDatos :: Datos -> [Etiqueta] -> Int -> Int -> (Datos, Datos, [Etiqueta], [Etiqueta])
-separarDatos datos etiquetas n p = (getTrain (partirInfoEnN n datos) p, getVal (partirInfoEnN n datos) p, 
-									getTrain (partirInfoEnN n etiquetas) p, getVal (partirInfoEnN n etiquetas) p)
-	where partirInfoEnN n info = sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length info) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] info) n
-		where sacarInvalidos datos n = if (length (last datos)) < n then init datos else datos
+
+separarDatos datos etiquetas n p = let datosParticionado = (sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length datos) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] datos) n)
+								    in let etiquetasParticionado = (sacarInvalidos (foldl (\z elem -> if (length (last z)) < (div (length etiquetas) n) then (init z) ++ [(last z) ++ [elem]] else (z ++ [[elem]])) [[]] etiquetas) n)
+										in (getTrain datosParticionado p, getVal datosParticionado p, getTrain etiquetasParticionado p, getVal etiquetasParticionado p)
+
+sacarInvalidos :: [[a]] -> Int -> [[a]]
+sacarInvalidos datos n = if (length (last datos)) < n then init datos else datos
 
 getTrain:: [[a]] -> Int -> [a]
 getTrain datos p = concat ((take (p-1) datos) ++ (drop p datos))
@@ -140,19 +129,6 @@ nFoldCrossValidation n datos etiquetas = mean (accuracyN (separarDatosEnN datos 
 	where separarDatosEnN datos etiquetas n p = if p == 0 then [] else (separarDatos datos etiquetas n p) : (separarDatosEnN datos etiquetas n (p-1))
 
 accuracyN :: [(Datos, Datos, [Etiqueta], [Etiqueta])] -> [Float]
-accuracyN muestra = map (\tupla -> accuracy (fst tupla) (snd tupla)) (zip (knnN muestra) (map (\cuadrupla -> fourth4 cuadrupla) muestra))
-	where knnN = foldr (\x rec -> (calculateKnn x) : rec) []
-		where calculateKnn cuadrupla = foldr (\x rec -> ((knn 15 (first4 cuadrupla) (third4 cuadrupla) distEuclideana) x) : rec) [] (second4 cuadrupla)
-
-first4 :: (Datos, Datos, [Etiqueta], [Etiqueta]) -> Datos
-first4 (elem,_,_,_) = elem
-
-second4 :: (Datos, Datos, [Etiqueta], [Etiqueta]) -> Datos
-second4 (_,elem,_,_) = elem
-
-third4 :: (Datos, Datos, [Etiqueta], [Etiqueta]) -> [Etiqueta]
-third4 (_,_,elem,_) = elem
-
-fourth4 :: (Datos, Datos, [Etiqueta], [Etiqueta]) -> [Etiqueta]
-fourth4 (_,_,_,elem) = elem
-
+accuracyN muestra = map (\tupla -> accuracy (fst tupla) (snd tupla)) (zip (knnN muestra) (map (\(a,b,c,d) -> d) muestra))
+	where knnN = map (\x -> calculateKnn x) 
+		where calculateKnn (w,x,y,z) = map (\a -> ((knn 15 w y distEuclideana) a)) x
