@@ -70,6 +70,25 @@ cant_distintos([L | Ls], S) :- quitar(L, Ls, Rquitado), cant_distintos(Rquitado,
 %Ejercicio 8
 %descifrar(S, M) :-
 
+
+%Ejercicio 10
+%mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, Msjs), menor_desvio_standard_por_palabra(Msjs, M).
+
+%menor_desvio_standard_por_palabra(Msjs, M) :- calcular_desvios(Msjs, Desvios), menor_desvio(Desvios, MinDesvio), tiene_desvio(Msjs, MinDesvio, M).
+
+%calcular_desvios([], Desvios) :- Desvios = [].
+%calcular_desvios([Msj | Msjs], Desvios) :- calcular_desvio(Msj, Desvio), calcular_desvios(Msjs, Drec), append(Desvio, Drec, Desvios).  
+
+%FALTA CIFRAR DE STRING A CUADRADO ROMBO Y QUE SE YO. SI NO NO PUEDO USAR PALABRAS! O SE PUEDE USAR EL DESCIFRAR INVERSO???
+%calcular_desvio(Msj | Desvio) :- palabras(Msj, P), calcular_longitud_media(P, LongMedia), binomios_cuadrados(P, LongMedia, BCuadrado), sum_list(BCuadrado, Sumatoria), Desvio = sqr(Sumatoria)/length(P).
+
+%calcular_longitud_media(P, LongMedia) :- 
+
+%binomios_cuadrados([], BCuadrados) :- BCuadrados = []. 
+%binomios_cuadrados([P | Ps], LongMedia, BCuadrados) :- binomio_cuadrado(P, LongMedia, BCuadrado), binomios_cuadrados(Ps, LongMedia, RecBCuadrados), append(BCuadrado, RecBCuadrados, BCuadrados).
+
+%binomio_cuadrado(P, LongMedia, BCuadrado) :- Resta = length(P) - LongMedia, BCuadrado = Resta^2.
+
 % listar mensajes secretos de ejemplo.
 ej(1, [rombo, cuadrado, espacio, perro, cuadrado, sol, cuadrado]).
 % solo debería ser "la cosa" porque cuadrado != triangulo
