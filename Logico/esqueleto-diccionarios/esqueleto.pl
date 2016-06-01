@@ -24,39 +24,29 @@ read_file(Stream,[X|L]) :-
 diccionario_lista(Lcode) :- diccionario(PalabraDelDicc), string_codes(PalabraDelDicc, Lcode). 
 
 %Ejercicio 2
-%L lista de listas, J elemento a intercalar, R result.
 %juntar_con([L], _, L).
-
+juntar_con([Ls | Lss], J, R) :- append(Rpref, Rrec, R), append(Ls, [J], Rpref), juntar_con(Lss, J, Rrec).  
 juntar_con([L], _, R) :- R = L.
-juntar_con([Ls | Lss], J, R) :- append(Ls, [J], Rpref), juntar_con(Lss, J, Rrec), append(Rpref, Rrec, R).  
 
 %Ejercicio 3
-%palabras([], _).
-%palabras([X | Ls], P) :- X == espacio, prefijo(P1, P), append(P1, [[]], P), palabras(Ls, P).
-%palabras([X | Ls], P) :- X \== espacio, last(P, Plast), last(Plast, X), palabras(Ls, P).
-%palabras([X | Ls], P) :- X \== espacio, last(P, Plast), append(Plast, [X], P1), prefijo(Plast, P1),  palabras(Ls, P).
-%prefijo(Ls1, Ls2) :- append(Ls1, Lprima, Ls2).
-
 palabras(S, P) :- juntar_con(P, espacio, S).
 
 %Ejercicio 4
 %Preguntar sobre la respuesta que hay que dar en el codigo? Que nos estamos perdiendo? el tercer caso del TP termina sin dar false.
 asignar_var(A, MI, MF) :- getKeys(MI, Keys), not(member(A, Keys)), append(MI, [(A, X)], MF).
-asignar_var(A, MI, MF) :- getKeys(MI, Keys), member(A, Keys), MF = MI.
+asignar_var(A, MI, MI) :- getKeys(MI, Keys), member(A, Keys).
 
 getKeys([], []).
 getKeys([(Key, Value) | Ts], Tmapped) :- getKeys(Ts, Trec), append([Key], Trec, Tmapped).
 
 %Ejercicio 5
-% No anda, preguntar xq carajo.
-palabras_con_variables([[]], V) :- V = [[]].
-palabras_con_variables([Ps:Pss], V) :- asignar_var_a_lista(Ps, [], PsVars), getValues(PsVars, PsValues), palabras_con_variables(Pss, Vrec), append(PsValues, Vrec, V).  
+palabras_con_variables(L, V) :- palabras_con_var_y_mapa(L, V, [], Mf).
 
-asignar_var_a_lista([], MI, MF) :- MF = MI.
-asignar_var_a_lista([P | Ps], MI, MF) :- asignar_var(P, MI, MF1), asignar_var_a_lista(Ps, MF1, MFrec), append(MF1, MFrec, MF).
+palabras_con_var_y_mapa([], [], Mf, Mf).
+palabras_con_var_y_mapa([Ls | Lss], [Vs | Vss], M, Mf1) :- pares_definidos_en_mapa(Ls, Vs, M, Mf0), palabras_con_var_y_mapa(Lss, Vss, Mf0, Mf1).
 
-getValues([], []).
-getValues([(Key, Value) | Ts], Tmapped) :- getValues(Ts, Trec), append([Value], Trec, Tmapped).
+pares_definidos_en_mapa([], [], Mf, Mf).
+pares_definidos_en_mapa([X | Ls], [V | Vs], Mi0, Mf) :- asignar_var(X, Mi0 , Mi1), member((X,V), Mi1), pares_definidos_en_mapa(Ls, Vs, Mi1, Mf).
 
 %Ejercicio 6
 quitar(_, [], R) :- R = [].
