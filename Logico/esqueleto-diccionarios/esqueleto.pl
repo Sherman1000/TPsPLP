@@ -24,12 +24,14 @@ read_file(Stream,[X|L]) :-
 diccionario_lista(Lcode) :- diccionario(PalabraDelDicc), string_codes(PalabraDelDicc, Lcode). 
 
 %Ejercicio 2
-%juntar_con([L], _, L).
-juntar_con([Ls | Lss], J, R) :- append(Rpref, Rrec, R), append(Ls, [J], Rpref), juntar_con(Lss, J, Rrec).  
-juntar_con([L], _, R) :- R = L.
+juntar_con([L], _ , L).
+juntar_con([Ls | Lss], J, R) :- juntar_con(Lss, J, Rrec), append(Rpref, Rrec, R), append(Ls, [J], Rpref),!.  
+
+separar_con([Ls | Lss], J, R) :- append(Rpref, Rrec, R), juntar_con(Lss, J, Rrec), append(Ls, [J], Rpref),!. 
+separar_con([L], _, L).
 
 %Ejercicio 3
-palabras(S, P) :- juntar_con(P, espacio, S).
+palabras(S, P) :- separar_con(P, espacio, S).
 
 %Ejercicio 4
 %Preguntar sobre la respuesta que hay que dar en el codigo? Que nos estamos perdiendo? el tercer caso del TP termina sin dar false.
