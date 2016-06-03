@@ -60,8 +60,13 @@ cant_distintos([], S) :- S = 0.
 cant_distintos([L | Ls], S) :- quitar(L, Ls, Rquitado), cant_distintos(Rquitado, CuentaRec), S is (1 + CuentaRec).
 
 %Ejercicio 8
-%descifrar(S, M) :-
+descifrar(S, M) :- palabras(S, P), palabras_con_variables(P, V), descifrarPalabras(V, Mvar), juntar_con(Mvar, 32, Palabrasseparadas), string_codes(M, Palabrasseparadas).
 
+descifrarPalabras([], []).
+descifrarPalabras([Ps | Pss], Mvar) :- diccionario_lista(PalabraDelDicc), descifrarPalabras(Pss, Mrec), palabra_valida(Ps, PalabraDelDicc, Mp), append([Mp], Mrec, Mvar).
+
+palabra_valida([], [], []).
+palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv), length(Ps, Lp), Lv == Lp, palabra_valida(Vars, Ps, Mrec), P = Var, append([P], Mrec, M).
 
 %Ejercicio 10
 %mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, Msjs), menor_desvio_standard_por_palabra(Msjs, M).
