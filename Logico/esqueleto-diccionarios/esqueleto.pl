@@ -95,22 +95,32 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 											 append([P], Mrec, M).
 
 %Ejercicio 10
+%mensajes_mas_parejos(S, M). FALTA ANALISIS A PARTIR DE descifrar_sin_espacios(S,M).
 mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, M), 
 							  calcular_desvio(M, DesvioM), 
 							  descifrar_sin_espacios(S, MComparador), 
 							  calcular_desvio(MComparador, DesvioComp), 
 							  DesvioM =< DesvioComp.
  
+%calcular_desvio(+Mensaje, ?Desvio).
 calcular_desvio(Mensaje, Desvio) :- split_por_espacio(Mensaje, MsjSeparadosPorEspacio), 
 								    calcular_desvio_sobre_lista_de_palabras(MsjSeparadosPorEspacio, Desvio).
+
+%split_por_espacio(?Sentencia, ?ListaDePalabras).
+% En caso de que ListaDePalabras esté instanciado, Sentencia debe estar instanciado.
 
 split_por_espacio([],[]).
 split_por_espacio(Sentencia, ListaDePalabras) :- leer_hasta_espacio(Sentencia, Palabra),
 										   borrar_primera_palabra(Palabra, Sentencia, SSinPalabra),
 										   split_por_espacio(SSinPalabra, RecListaDePalabras),
 										   append([Palabra], RecListaDePalabras, ListaDePalabras), !.
-									
+
+%leer_hasta_espacio(+Caracteres, ?PrimeraPalabra)									
 leer_hasta_espacio(Caracteres, PrimeraPalabra) :- primera_palabra(Caracteres, [], PrimeraPalabra).
+
+%primera_palabra(+Cs, ?Accum, ?PrimeraPalabra).
+% En caso de instanciarse Accum, debe tener relacion con lo puesto en Cs para que el algoritmo tenga sentido. Hay casos para los que funciona tener ?Cs, pero en otros se cuelga. 
+% Al igual que para Accum, esos casos deben tener sentido en el algoritmo. No se recomienda.
 
 primera_palabra([],PrimeraPalabra, PrimeraPalabra).
 primera_palabra([C|Cs],Accum, PrimeraPalabra) :- C\=32,
@@ -118,32 +128,44 @@ primera_palabra([C|Cs],Accum, PrimeraPalabra) :- C\=32,
 									  primera_palabra(Cs,AccumConCaracter, PrimeraPalabra).
 primera_palabra([C|_],FirstWord,FirstWord) :- C==32.
 
+%borrar_primera_palabra(?Palabra, ?Sentencia, ?SentenciaSinPalabra).
+%Siempre brinda una sola solución. 
+
 borrar_primera_palabra(Palabra, Sentencia, SentenciaSinPalabra) :- append(Palabra, [32|SentenciaSinPalabra], Sentencia), !.
 borrar_primera_palabra(Palabra, Sentencia, SentenciaSinPalabra) :- append(Palabra, SentenciaSinPalabra, Sentencia).
 
+%calcular_desvio_sobre_lista_de_palabras(+Palabras, ?Desvio).
 calcular_desvio_sobre_lista_de_palabras(Palabras, Desvio) :- calcular_longitud_media(Palabras, LongMedia), 
-															 binomios_cuadrados(Palabras, LongMedia, BCuadrado), 
-															 sum_list(BCuadrado, Sumatoria), 
+															 binomios_cuadrados(Palabras, LongMedia, BCuadrados), 
+															 sum_list(BCuadrados, Sumatoria), 
 															 length(Palabras, LPalabras), Division is Sumatoria / LPalabras, Desvio is sqrt(Division).
 
+%calcular_longitud_media(+P, ?LongMedia).
 calcular_longitud_media(P, LongMedia) :- length_list(P, LengthList), 
 										 average(LengthList, LongMedia).
 
+%length_list(+Ls, ?LList).
 length_list([L | Ls], LList) :- append([LLength], LListRec, LList), 
 								length_list(Ls, LListRec),
 								length(L, LLength),!. 
 length_list([L], LList) :- length(L, LLength), LList = [LLength].
 
+%average(+List, ?Average).
 average(List, Average):- sum_list(List, Sum), 
 						 length(List, Length), 
 						 Length > 0, 
 						 Average is (Sum / Length).
 
+%binomios_cuadrados(+Ps, +LongMedia, -BCuadrados).
+% LongMedia debe estar instanciado ya que Resta en binomio_cuadrado() se forma a partir de un "is" que debe tener ambos parametros instanciados.
+
 binomios_cuadrados([P], LongMedia, [BCuadrado]) :- binomio_cuadrado(P, LongMedia, BCuadrado). 
-binomios_cuadrados([P | Ps], LongMedia, BCuadrados) :- append([BCuadrado], 
-													   RecBCuadrados, BCuadrados), 
+binomios_cuadrados([P | Ps], LongMedia, BCuadrados) :- append([BCuadrado], RecBCuadrados, BCuadrados), 
 													   binomios_cuadrados(Ps, LongMedia, RecBCuadrados), 
 													   binomio_cuadrado(P, LongMedia, BCuadrado),!.
+
+%binomio_cuadrado(?P, +LongMedia, -BCuadrado).  
+% En caso de que P no esté instanciado, devuelve infinitas soluciones. Esto NECESITA que BCuadrado tampoco esté instanciado.
 
 binomio_cuadrado(P, LongMedia, BCuadrado) :- length(P, LongP), 
 											 Resta is (LongP-LongMedia), 
