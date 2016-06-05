@@ -94,6 +94,18 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 											 P = Var, 
 											 append([P], Mrec, M).
 
+%Ejercicio 9
+descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces), sacar_espacio_del_final(SwithSpaces, Sfinal), descifrar(Sfinal, M).
+
+sacar_espacio_del_final([], []).
+sacar_espacio_del_final([espacio], []).
+sacar_espacio_del_final([ X | Ls1 ], [Y | Ls2]) :- X == Y, sacar_espacio_del_final( Ls1, Ls2).
+
+con_espacios_intercalados([], []).
+con_espacios_intercalados([A], [A]).
+con_espacios_intercalados(S, SwithSpaces) :- append(Spref, Ssuf, S), Spref \== [], append(Spref, [espacio], SwithSpacesPref), con_espacios_intercalados(Ssuf, SwithSpacesSuf), append(SwithSpacesPref, SwithSpacesSuf, SwithSpaces).
+
+
 %Ejercicio 10
 %mensajes_mas_parejos(S, M). FALTA ANALISIS A PARTIR DE descifrar_sin_espacios(S,M).
 mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, M), 
