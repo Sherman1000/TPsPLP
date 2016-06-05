@@ -21,22 +21,23 @@ read_file(Stream,[X|L]) :-
 
 
 %Ejercicio 1
+%diccionario_lista(+Lcode)
+
 diccionario_lista(Lcode) :- diccionario(PalabraDelDicc), 
 							string_codes(PalabraDelDicc, Lcode). 
 
 %Ejercicio 2
+%juntar_con(+S, +a , ?R)
+
 juntar_con([L], _ , L).
 juntar_con([Ls | Lss], J, R) :- juntar_con(Lss, J, Rrec), 
 								append(Rpref, Rrec, R), 
 								append(Ls, [J], Rpref),!.  
 
-separar_con([Ls | Lss], J, R) :- append(Rpref, Rrec, R), 
-								 juntar_con(Lss, J, Rrec), 
-								 append(Ls, [J], Rpref),!. 
-separar_con([L], _, L).
-
 %Ejercicio 3
-palabras(S, P) :- separar_con(P, espacio, S).
+%palabras(?S, +P)
+
+palabras(S, P) :- split_por_espacio(S, P).
 
 %Ejercicio 4
 asignar_var(A, MI, MF) :- getKeys(MI, Keys), 
@@ -50,6 +51,8 @@ getKeys([(Key, Value) | Ts], Tmapped) :- getKeys(Ts, Trec),
 										 append([Key], Trec, Tmapped).
 
 %Ejercicio 5
+%palabras_con_variables(+L, ?V) 
+
 palabras_con_variables(L, V) :- palabras_con_var_y_mapa(L, V, [], Mf).
 
 palabras_con_var_y_mapa([], [], Mf, Mf).
@@ -95,6 +98,8 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 											 append([P], Mrec, M).
 
 %Ejercicio 9
+%descifrar_sin_espacios(+S, ?M)
+
 descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces), sacar_espacio_del_final(SwithSpaces, Sfinal), descifrar(Sfinal, M).
 
 sacar_espacio_del_final([], []).
