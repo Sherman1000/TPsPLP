@@ -42,12 +42,12 @@ palabras(S, P) :- split_por_caracter(S, espacio, P).
 %Ejercicio 4
 asignar_var(A, MI, MF) :- getKeys(MI, Keys), 
 						  not(member(A, Keys)), 
-						  append(MI, [(A, X)], MF).
+						  append(MI, [(A, _)], MF).
 asignar_var(A, MI, MI) :- getKeys(MI, Keys), 
 						  member(A, Keys).
 
 getKeys([], []).
-getKeys([(Key, Value) | Ts], Tmapped) :- getKeys(Ts, Trec), 
+getKeys([(Key, _) | Ts], Tmapped) :- getKeys(Ts, Trec), 
 										 append([Key], Trec, Tmapped).
 
 %Ejercicio 5
@@ -55,7 +55,7 @@ getKeys([(Key, Value) | Ts], Tmapped) :- getKeys(Ts, Trec),
 %palabras_con_var_y_mapa(+L, ?V, +Mi, -Mf)
 %pares_definidos_en_mapa(+L, ?V, +Mi, -Mf)
 
-palabras_con_variables(L, V) :- palabras_con_var_y_mapa(L, V, [], Mf).
+palabras_con_variables(L, V) :- palabras_con_var_y_mapa(L, V, [], _).
 
 palabras_con_var_y_mapa([], [], Mf, Mf).
 palabras_con_var_y_mapa([Ls | Lss], [Vs | Vss], M, Mf1) :- pares_definidos_en_mapa(Ls, Vs, M, Mf0), 
@@ -114,7 +114,7 @@ con_espacios_intercalados(S, SwithSpaces) :- append(Spref, Ssuf, S), Spref \== [
 											append(SprefIntercalado, SwithSpacesSuf, SwithSpaces).
 
 intercalar_o_no(Pref, [], Pref) :- !. 
-intercalar_o_no(Pref, Suf, PrefNuevo) :- append(Pref, [espacio], PrefNuevo).
+intercalar_o_no(Pref, _, PrefNuevo) :- append(Pref, [espacio], PrefNuevo).
 
 
 %Ejercicio 10
