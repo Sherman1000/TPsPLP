@@ -100,15 +100,20 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M)
 
-descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces), sacar_espacio_del_final(SwithSpaces, Sfinal),  descifrar(Sfinal, M).
+descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  descifrar(Sfinal, M).
 
 sacar_espacio_del_final([], []).
 sacar_espacio_del_final([espacio], []).
 sacar_espacio_del_final([ X | Ls1 ], [Y | Ls2]) :- X = Y, sacar_espacio_del_final( Ls1, Ls2).
 
 con_espacios_intercalados([], []).
-con_espacios_intercalados([A], [A]).
-con_espacios_intercalados(S, SwithSpaces) :- append(Spref, Ssuf, S), Spref \== [], append(Spref, [espacio], SwithSpacesPref), con_espacios_intercalados(Ssuf, SwithSpacesSuf), append(SwithSpacesPref, SwithSpacesSuf, SwithSpaces).
+con_espacios_intercalados(S, SwithSpaces) :- append(Spref, Ssuf, S), Spref \== [], 
+											intercalar_o_no(Spref, Ssuf, SprefIntercalado), 
+											con_espacios_intercalados(Ssuf, SwithSpacesSuf), 
+											append(SprefIntercalado, SwithSpacesSuf, SwithSpaces).
+
+intercalar_o_no(Pref, [], Pref) :- !. 
+intercalar_o_no(Pref, Suf, PrefNuevo) :- append(Pref, [espacio], PrefNuevo).
 
 
 %Ejercicio 10
