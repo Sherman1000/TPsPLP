@@ -37,7 +37,7 @@ juntar_con([Ls | Lss], J, R) :- juntar_con(Lss, J, Rrec),
 %Ejercicio 3
 %palabras(?S, +P)
 
-palabras(S, P) :- split_por_espacio(S, P).
+palabras(S, P) :- split_por_caracter(S, espacio, P).
 
 %Ejercicio 4
 asignar_var(A, MI, MF) :- getKeys(MI, Keys), 
@@ -120,36 +120,36 @@ mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, M),
 							  DesvioM =< DesvioComp.
  
 %calcular_desvio(+Mensaje, ?Desvio).
-calcular_desvio(Mensaje, Desvio) :- split_por_espacio(Mensaje, MsjSeparadosPorEspacio), 
+calcular_desvio(Mensaje, Desvio) :- split_por_caracter(Mensaje, 32, MsjSeparadosPorEspacio), 
 								    calcular_desvio_sobre_lista_de_palabras(MsjSeparadosPorEspacio, Desvio).
 
-%split_por_espacio(?Sentencia, ?ListaDePalabras).
+%split_por_caracter(?Sentencia, +Caracter, ?ListaDePalabras).
 % En caso de que ListaDePalabras esté instanciado, Sentencia debe estar instanciado.
 
-split_por_espacio([],[]).
-split_por_espacio(Sentencia, ListaDePalabras) :- leer_hasta_espacio(Sentencia, Palabra),
-										   borrar_primera_palabra(Palabra, Sentencia, SSinPalabra),
-										   split_por_espacio(SSinPalabra, RecListaDePalabras),
-										   append([Palabra], RecListaDePalabras, ListaDePalabras), !.
+split_por_caracter([], _, []).
+split_por_caracter(Sentencia, Caracter, ListaDePalabras) :- leer_hasta_caracter(Sentencia, Caracter, Palabra),
+														    borrar_hasta_caracter(Palabra, Caracter, Sentencia, SSinPalabra),
+										   					split_por_caracter(SSinPalabra, Caracter, RecListaDePalabras),
+										   					append([Palabra], RecListaDePalabras, ListaDePalabras), !.
 
-%leer_hasta_espacio(+Caracteres, ?PrimeraPalabra)									
-leer_hasta_espacio(Caracteres, PrimeraPalabra) :- primera_palabra(Caracteres, [], PrimeraPalabra).
+%leer_hasta_caracter(+Caracteres, +CaracterSeparador, ?Palabra)									
+leer_hasta_caracter(Caracteres, CaracterSeparador, Palabra) :- palabra_hasta_caracter(Caracteres, CaracterSeparador, [], Palabra).
 
-%primera_palabra(+Cs, ?Accum, ?PrimeraPalabra).
+%palabra_hasta_caracter(+Cs, +CaracterSeparador, ?Accum, ?Palabra).
 % En caso de instanciarse Accum, debe tener relacion con lo puesto en Cs para que el algoritmo tenga sentido. Hay casos para los que funciona tener ?Cs, pero en otros se cuelga. 
 % Al igual que para Accum, esos casos deben tener sentido en el algoritmo. No se recomienda.
 
-primera_palabra([],PrimeraPalabra, PrimeraPalabra).
-primera_palabra([C|Cs],Accum, PrimeraPalabra) :- C\=32,
-									  append(Accum, [C], AccumConCaracter),
-									  primera_palabra(Cs,AccumConCaracter, PrimeraPalabra).
-primera_palabra([C|_],FirstWord,FirstWord) :- C==32.
+palabra_hasta_caracter([], _, Palabra, Palabra).
+palabra_hasta_caracter([C|Cs], CaracterSeparador, Accum, Palabra) :- C\=CaracterSeparador,
+									  							  append(Accum, [C], AccumConCaracter),
+									  							  palabra_hasta_caracter(Cs, CaracterSeparador, AccumConCaracter, Palabra).
+palabra_hasta_caracter([C|_], CaracterSeparador, Palabra, Palabra) :- C==CaracterSeparador.
 
-%borrar_primera_palabra(?Palabra, ?Sentencia, ?SentenciaSinPalabra).
+%borrar_hasta_caracter(?Palabra, ?Caracter, ?Sentencia, ?SentenciaSinPalabra).
 %Siempre brinda una sola solución. 
 
-borrar_primera_palabra(Palabra, Sentencia, SentenciaSinPalabra) :- append(Palabra, [32|SentenciaSinPalabra], Sentencia), !.
-borrar_primera_palabra(Palabra, Sentencia, SentenciaSinPalabra) :- append(Palabra, SentenciaSinPalabra, Sentencia).
+borrar_hasta_caracter(Palabra, Caracter, Sentencia, SentenciaSinPalabra) :- append(Palabra, [Caracter|SentenciaSinPalabra], Sentencia), !.
+borrar_hasta_caracter(Palabra, _, Sentencia, SentenciaSinPalabra) :- append(Palabra, SentenciaSinPalabra, Sentencia).
 
 %calcular_desvio_sobre_lista_de_palabras(+Palabras, ?Desvio).
 calcular_desvio_sobre_lista_de_palabras(Palabras, Desvio) :- calcular_longitud_media(Palabras, LongMedia), 
