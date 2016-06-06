@@ -100,7 +100,7 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M)
 
-descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  descifrar(Sfinal, M).
+descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  descifrar(SwithSpaces, M).
 
 sacar_espacio_del_final([], []).
 sacar_espacio_del_final([espacio], []).
