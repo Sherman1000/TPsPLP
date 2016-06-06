@@ -27,7 +27,7 @@ diccionario_lista(Lcode) :- diccionario(PalabraDelDicc),
 							string_codes(PalabraDelDicc, Lcode). 
 
 %Ejercicio 2
-%juntar_con(+S, +a , ?R)
+%juntar_con(+S, +A , ?R)
 
 juntar_con([L], _ , L).
 juntar_con([Ls | Lss], J, R) :- juntar_con(Lss, J, Rrec), 
@@ -52,6 +52,8 @@ getKeys([(Key, Value) | Ts], Tmapped) :- getKeys(Ts, Trec),
 
 %Ejercicio 5
 %palabras_con_variables(+L, ?V) 
+%palabras_con_var_y_mapa(+L, ?V, +Mi, -Mf)
+%pares_definidos_en_mapa(+L, ?V, +Mi, -Mf)
 
 palabras_con_variables(L, V) :- palabras_con_var_y_mapa(L, V, [], Mf).
 
@@ -99,12 +101,11 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M)
+%con_espacios_intercalados(+S, ?R)
+%intercalar_o_no(+P, +S, ?R)
 
 descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  descifrar(SwithSpaces, M).
 
-sacar_espacio_del_final([], []).
-sacar_espacio_del_final([espacio], []).
-sacar_espacio_del_final([ X | Ls1 ], [Y | Ls2]) :- X = Y, sacar_espacio_del_final( Ls1, Ls2).
 
 con_espacios_intercalados([], []).
 con_espacios_intercalados(S, SwithSpaces) :- append(Spref, Ssuf, S), Spref \== [], 
