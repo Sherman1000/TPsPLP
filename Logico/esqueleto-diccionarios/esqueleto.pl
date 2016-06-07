@@ -101,29 +101,29 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M)
+descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  
+								descifrar(SwithSpaces, M).
+
 %con_espacios_intercalados(+S, ?R)
-%intercalar_o_no(+P, +S, ?R)
-
-descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  descifrar(SwithSpaces, M).
-
-
 con_espacios_intercalados([], []).
 con_espacios_intercalados(S, SwithSpaces) :- append(Spref, Ssuf, S), Spref \== [], 
 											intercalar_o_no(Spref, Ssuf, SprefIntercalado), 
 											con_espacios_intercalados(Ssuf, SwithSpacesSuf), 
 											append(SprefIntercalado, SwithSpacesSuf, SwithSpaces).
 
+%intercalar_o_no(+P, +S, ?R)
 intercalar_o_no(Pref, [], Pref) :- !. 
 intercalar_o_no(Pref, _, PrefNuevo) :- append(Pref, [espacio], PrefNuevo).
 
 
 %Ejercicio 10
-%mensajes_mas_parejos(S, M). FALTA ANALISIS A PARTIR DE descifrar_sin_espacios(S,M).
+%mensajes_mas_parejos(+S, ?M). 
 mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, M), 
 							  string_codes(M, L),
   							  calcular_desvio(L, DesvioM), 
 							  not(hay_uno_menor(DesvioM, S)).
  
+%hay_uno_menor(+DesvioM, +S) 
 hay_uno_menor(DesvioM, S) :- descifrar_sin_espacios(S, MComparador),
 							 string_codes(MComparador, LComparador),
 							 calcular_desvio(LComparador, DesvioComp),
