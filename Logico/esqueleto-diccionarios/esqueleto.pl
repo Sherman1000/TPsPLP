@@ -120,11 +120,15 @@ intercalar_o_no(Pref, _, PrefNuevo) :- append(Pref, [espacio], PrefNuevo).
 %Ejercicio 10
 %mensajes_mas_parejos(S, M). FALTA ANALISIS A PARTIR DE descifrar_sin_espacios(S,M).
 mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, M), 
-							  calcular_desvio(M, DesvioM), 
-							  descifrar_sin_espacios(S, MComparador), 
-							  calcular_desvio(MComparador, DesvioComp), 
-							  DesvioM =< DesvioComp.
+							  string_codes(M, L),
+  							  calcular_desvio(L, DesvioM), 
+							  not(hay_uno_menor(DesvioM, S)).
  
+hay_uno_menor(DesvioM, S) :- descifrar_sin_espacios(S, MComparador),
+							 string_codes(MComparador, LComparador),
+							 calcular_desvio(LComparador, DesvioComp),
+							 DesvioM > DesvioComp.
+
 %calcular_desvio(+Mensaje, ?Desvio).
 calcular_desvio(Mensaje, Desvio) :- split_por_caracter(Mensaje, 32, MsjSeparadosPorEspacio), 
 								    calcular_desvio_sobre_lista_de_palabras(MsjSeparadosPorEspacio, Desvio).
