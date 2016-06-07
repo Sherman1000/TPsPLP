@@ -1,0 +1,25 @@
+\section{Introducción}
+
+	Para este Trabajo Práctico, se nos pidió especificar un sistema para reemplazar el Sistema Electoral Nacional actual. El objetivo de este nuevo sistema es volverlo más moderno, ágil y transparente. Dado que el formato de la votación no presenta cambios, el sistema debe proveer las mismas modalidades de voto que el sistema actual; es decir, el sistema debe permitir el voto de una lista completa, el voto por categoría (o `corte de boleta') y el voto en blanco.
+	
+	Para este objetivo, se nos pide diseñar el comportamiento de una máquina emisora de sufragios, a razón de una por cada mesa de votación, la que permita a los Electores efectuar el sufragio de una forma clara, transparente y secreta.
+	
+	A su vez, nuestro Sistema debe especificar el comportamiento del Centro de Cómputos Nacional, encargado de recibir los resultados desde todas las máquinas y procesar estos resultados, dando a conocer los resultados mientras las mesas se escrutan.
+	
+	En particular, nuestro sistema debe implementar las siguientes funcionalidades:
+\begin{itemize}
+\item Poder cargar y consultar el padrón electoral.
+\item Poder cargar y consultar los candidatos disponibles para cada cargo.
+\item Poder asignar al Presidente de Mesa para cada una de las mesas.
+\item Pasadas las 18 horas, poder registrar y consultar los Resultados parciales y totales.
+\item Poder calcular los candidatos electos para los cargos ejecutivos y legistlativos.
+\item Poder cargar en las máquinas los candidatos antes del día electoral.
+\item El Presidente de Mesa debe poder abrir y cerrar la mesa en el día electoral.
+\item Poder garantizar al Elector la posibilidad de efectuar su sufragio en forma secreta.
+\item Poder dar asistencia al Elector para el uso de las máquinas de sufragio, incluso en el caso de votantes no videntes o parcialmente discapacitados.
+\item Poder dar a los fiscales la posibilidad de controlar los comicios.
+\end{itemize}
+
+	También, debemos especificar de que forma nuestro sistema a especificar almacenará los sufragios de los Electores. Debemos decidir entre varias alternativas: boleta impresa, digital en un medio de almacenamiento a designar, etc.
+	
+	En este informe, utilizamos diferentes técnicas para especificar un Sistema Electoral Nacional, tales como diagramas de contexto, actividad y clases, máquinas de estados finitos.
