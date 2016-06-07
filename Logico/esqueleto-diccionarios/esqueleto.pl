@@ -49,7 +49,7 @@ palabras(S, P) :- split_por_caracter(S, espacio, P).
 % combinaciones con listas infinitas. A o MF deben estar instanciados. No pueden no estar instanciados al mismo tiempo.
 
 %Este ejercicio funciona gracias a la capacidad de ProLog de generar variables frescas bajo demanda utilizando 
-variables anonimas generadas con la keyword "_", ademas, la manera de representar dichas variables frescas ayuda para que estas puedan ser manipulables dentro de los predicados.
+%variables anonimas generadas con la keyword "_", ademas, la manera de representar dichas variables frescas ayuda para que estas puedan ser manipulables dentro de los predicados.
 %Si se nos diera como variable fresca una que ya hemos utilizado antes nuestro predicado asignar_var se volveria inconsistente.
 
 
@@ -115,9 +115,9 @@ descifrar(S, M) :- palabras(S, P),
 				   string_codes(M, Palabrasseparadas).
 
 descifrarPalabras([], []).
-descifrarPalabras([Ps | Pss], Mvar) :- diccionario_lista(PalabraDelDicc), 
-									   descifrarPalabras(Pss, Mrec), 
-									   palabra_valida(Ps, PalabraDelDicc, Mp), 
+descifrarPalabras([Vs | Vss], Mvar) :- diccionario_lista(PalabraDelDicc), 
+									   palabra_valida(Vs, PalabraDelDicc, Mp), 
+									   descifrarPalabras(Vss, Mrec), 
 									   append([Mp], Mrec, Mvar).
 
 palabra_valida([], [], []).
@@ -125,10 +125,14 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 											 length(Ps, Lp), 
 											 Lv == Lp, 
 											 palabra_valida(Vars, Ps, Mrec), 
+											 esta_libre(Var, P, Ps),
 											 P = Var, 
 											 append([P], Mrec, M).
 
-
+esta_libre(Var, P, []).										 
+esta_libre(Var, P, Ps) :- nonvar(Var).											 
+esta_libre(Var, P, [Pp | Ps]) :- var(Var), Pp \== P, esta_libre(Var, P, Ps).
+											 
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M)
 
