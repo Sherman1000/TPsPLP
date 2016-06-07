@@ -40,6 +40,10 @@ juntar_con([Ls | Lss], J, R) :- juntar_con(Lss, J, Rrec),
 palabras(S, P) :- split_por_caracter(S, espacio, P).
 
 %Ejercicio 4
+%Este ejercicio funciona gracias a la capacidad de ProLog de generar variables frescas bajo demanda
+%y la manera de representar dichas variables frescas para que puedan ser manipulables dentro de los predicados.
+%Si se nos diera como variable fresca una que ya hemos utilizado antes nuestro predicado asignar_var se volveria inconsistente.
+
 asignar_var(A, MI, MF) :- getKeys(MI, Keys), 
 						  not(member(A, Keys)), 
 						  append(MI, [(A, _)], MF).
