@@ -33,8 +33,8 @@ diccionario_lista(Lcode) :- diccionario(PalabraDelDicc),
 
 juntar_con([L], _ , L).
 juntar_con([Ls | Lss], J, R) :- juntar_con(Lss, J, Rrec), 
-								append(Rpref, Rrec, R), 
-								append(Ls, [J], Rpref),!.  
+								append(RPref, Rrec, R), 
+								append(Ls, [J], RPref),!.  
 
 
 %Ejercicio 3
@@ -53,17 +53,17 @@ palabras(S, P) :- split_por_caracter(S, espacio, P).
 %Si se nos diera como variable fresca una que ya hemos utilizado antes nuestro predicado asignar_var se volveria inconsistente.
 
 
-asignar_var(A, MI, MF) :- getKeys(MI, Keys), 
+asignar_var(A, MI, MF) :- get_keys(MI, Keys), 
 						  not(member(A, Keys)), 
 						  append(MI, [(A, _)], MF).
-asignar_var(A, MI, MI) :- getKeys(MI, Keys), 
+asignar_var(A, MI, MI) :- get_keys(MI, Keys), 
 						  member(A, Keys).
 
-%getKeys(?Tuples, ?Tmapped): Si ambas no están instanciadas, genera infinitos resultados.
+%get_keys(?Tuples, ?TMapped): Si ambas no están instanciadas, genera infinitos resultados.
 
-getKeys([], []).
-getKeys([(Key, _) | Ts], Tmapped) :- getKeys(Ts, Trec), 
-										 append([Key], Trec, Tmapped).
+get_keys([], []).
+get_keys([(Key, _) | Ts], TMapped) :- get_keys(Ts, Trec), 
+									  append([Key], Trec, TMapped).
 
 %Ejercicio 5
 %palabras_con_variables(+L, ?V): Si L no estuviera instanciado, no se rompe pero genera infinitos resultados inservibles con combinaciones de listas vacias. Esto sucede debido
@@ -102,8 +102,8 @@ quitar(E, [L|Ls], R) :- E \== L, quitar(E, Ls, Rrec),
 %cuando se pide otra (debido al uso de quitar(), quien termina llamando a append()).
 
 cant_distintos([], S) :- S = 0.
-cant_distintos([L | Ls], S) :- quitar(L, Ls, Rquitado), 
-							   cant_distintos(Rquitado, CuentaRec), 
+cant_distintos([L | Ls], S) :- quitar(L, Ls, RQuitado), 
+							   cant_distintos(RQuitado, CuentaRec), 
 							   S is (1 + CuentaRec).
 
 
@@ -111,8 +111,8 @@ cant_distintos([L | Ls], S) :- quitar(L, Ls, Rquitado),
 descifrar(S, M) :- palabras(S, P), 	
 				   palabras_con_variables(P, V), 
 				   descifrarPalabras(V, Mvar), 
-				   juntar_con(Mvar, 32, Palabrasseparadas), 
-				   string_codes(M, Palabrasseparadas).
+				   juntar_con(Mvar, 32, PalabrasSeparadas), 
+				   string_codes(M, PalabrasSeparadas).
 
 descifrarPalabras([], []).
 descifrarPalabras([Vs | Vss], Mvar) :- diccionario_lista(PalabraDelDicc), 
@@ -129,25 +129,25 @@ palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv),
 											 P = Var, 
 											 append([P], Mrec, M).
 
-esta_libre(Var, P, []).										 
-esta_libre(Var, P, Ps) :- nonvar(Var).											 
+esta_libre(_, _, []).										 
+esta_libre(Var, _, _) :- nonvar(Var).											 
 esta_libre(Var, P, [Pp | Ps]) :- var(Var), Pp \== P, esta_libre(Var, P, Ps).
 											 
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M), necesariamente S debe estar instanciado para generar las posibles intercalaciones con espacio resultantes, que luego deberan ser descifradas.
 %Si no estuviera instanciada la S podria instanciarse en secuencias, potencialmente infinitas, que nunca daran una oracion valida considerando el diccionario cargado actual.
 
-descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  
-								descifrar(SwithSpaces, M).
+descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SWithSpaces),  
+								descifrar(SWithSpaces, M).
 
 
 %con_espacios_intercalados(+S, ?R)
 
 con_espacios_intercalados([], []).
-con_espacios_intercalados(S, SwithSpaces) :- append(Spref, Ssuf, S), Spref \== [], 
-											intercalar_o_no(Spref, Ssuf, SprefIntercalado), 
-											con_espacios_intercalados(Ssuf, SwithSpacesSuf), 
-											append(SprefIntercalado, SwithSpacesSuf, SwithSpaces).
+con_espacios_intercalados(S, SWithSpaces) :- append(SPref, SSuf, S), SPref \== [], 
+											intercalar_o_no(SPref, SSuf, SPrefIntercalado), 
+											con_espacios_intercalados(SSuf, SWithSpacesSuf), 
+											append(SPrefIntercalado, SWithSpacesSuf, SWithSpaces).
 
 
 %intercalar_o_no(+P, +S, ?R)
