@@ -134,7 +134,8 @@ esta_libre(Var, P, Ps) :- nonvar(Var).
 esta_libre(Var, P, [Pp | Ps]) :- var(Var), Pp \== P, esta_libre(Var, P, Ps).
 											 
 %Ejercicio 9
-%descifrar_sin_espacios(+S, ?M)
+%descifrar_sin_espacios(+S, ?M), necesariamente S debe estar instanciado para generar las posibles intercalaciones con espacio resultantes, que luego deberan ser descifradas.
+%Si no estuviera instanciada la S podria instanciarse en secuencias, potencialmente infinitas, que nunca daran una oracion valida considerando el diccionario cargado actual.
 
 descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SwithSpaces),  
 								descifrar(SwithSpaces, M).
