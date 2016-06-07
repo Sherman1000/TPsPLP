@@ -44,8 +44,14 @@ palabras(S, P) :- split_por_caracter(S, espacio, P).
 
 
 %Ejercicio 4
+<<<<<<< HEAD
 %asignar_var(?A, +MI, ?MF): Si MI no está instanciado, se cuelga cuando trata de encontrar otra solución más que MI = [] y MF = A, debido a que genera
 % combinaciones con listas infinitas. A o MF deben estar instanciados. No pueden no estar instanciados al mismo tiempo.
+=======
+%Este ejercicio funciona gracias a la capacidad de ProLog de generar variables frescas bajo demanda utilizando 
+variables anonimas generadas con la keyword "_", ademas, la manera de representar dichas variables frescas ayuda para que estas puedan ser manipulables dentro de los predicados.
+%Si se nos diera como variable fresca una que ya hemos utilizado antes nuestro predicado asignar_var se volveria inconsistente.
+>>>>>>> 92a34422fcc4167ee978e6824a55ca49f9fd5f74
 
 asignar_var(A, MI, MF) :- getKeys(MI, Keys), 
 						  not(member(A, Keys)), 
