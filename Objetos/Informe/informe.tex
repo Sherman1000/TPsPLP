@@ -1,0 +1,554 @@
+\documentclass[spanish, 10pt,a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\usepackage[pdftex]{graphicx}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{graphics}
+\usepackage{amsthm}
+\usepackage{subcaption}
+\usepackage{caratula}
+\usepackage{fancyhdr,lastpage}
+\usepackage[paper=a4paper, left=1.4cm, right=1.4cm, bottom=1.4cm, top=1.4cm]{geometry}
+\usepackage[table]{xcolor} % color en las matrices
+\usepackage[font=small,labelfont=bf]{caption} % caption de las figuras en letra mas chica que el texto
+\usepackage{listings}
+\usepackage{float}
+\usepackage{pdfpages}
+\usepackage{amsfonts}
+
+
+\color{black}
+
+%%%PAGE LAYOUT%%%
+\topmargin = -1.2cm
+\voffset = 0cm
+\hoffset = 0em
+\textwidth = 48em
+\textheight = 164 ex
+\oddsidemargin = 0.5 em
+\parindent = 2 em
+\parskip = 3 pt
+\footskip = 7ex
+\headheight = 20pt
+\pagestyle{fancy}
+\lhead{PLP - Trabajo Pr\'actico 3} % cambia la parte izquierda del encabezado
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}} % cambia la parte derecha del encabezado
+\rfoot{\thepage}
+\cfoot{}
+\numberwithin{equation}{section} %sets equation numbers <chapter>.<section>.<subsection>.<index>
+
+\newcommand{\figurewidth}{1\textwidth}
+
+\newcommand{\tuple}[1]{\ensuremath{\left \langle #1 \right \rangle }}
+\newcommand{\Ode}[1]{\small{$\mathcal{O}(#1)$}}
+
+\input{caratula.tex} 
+\begin{document}
+{ \oddsidemargin = 2em
+	\headheight = -20pt
+	\maketitle
+}
+	\tableofcontents
+	\newpage
+
+\section{Código}
+
+\subsection{PropositionalFormula}
+
+\begin{lstlisting}
+
+Object subclass: #PropositionalFormula
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'!
+
+\end{lstlisting}
+
+\subsubsection{Métodos de instancia}
+\begin{lstlisting}
+not 
+  ^ Negation of: self.
+
+& aFormula
+  ^ Conjunction of: self and: aFormula.
+
+| aFormula
+  ^ Disjunction of: self and: aFormula.
+
+==> aFormula
+  ^ Implication of: self and: aFormula.
+
+= aFormula 
+  ^ SubclassResponsibility
+
+hash 
+  ^ SubclassResponsibility
+
+allPropVars
+  ^ SubclassResponsibility 
+
+negate
+  ^ SubclassResponsibility
+
+toNNF
+  | formulaWithoutImplications |
+  formulaWithoutImplications := self withoutImplications.
+  ^ formulaWithoutImplications organizeNegations.
+
+withoutImplications
+  ^ SubclassResponsibility
+
+organizeNegations
+  ^ SubclassResponsibility
+
+organizeNegationsFromNegation: aNegationFormula
+  ^ SubclassResponsibility
+
+operatorAsString
+  ^ SubclassResponsibility
+
+asString
+  ^ SubclassResponsibility
+
+printString
+  ^ self asString
+
+asStringWithParenthesis: aFormula
+  ^ '( ', aFormula asString, ' )'.
+
+asStringWithoutParenthesis: aFormula
+  ^ aFormula asString.
+
+representationAsStringIn: aBinaryFormula
+  ^ SubclassResponsibility.
+
+representationAsStringInNegation: aNegationFormula
+  ^ aNegationFormula asStringWithParenthesis: self.
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Clase}
+\begin{lstlisting}
+PropositionalFormula class
+  instanceVariableNames: ''
+
+of: aFormula and: anotherFormula
+  ^ SubclassResponsibility.
+
+of: aFormula
+  ^ SubclassResponsibility 
+
+\end{lstlisting}
+
+\subsection{BinaryPropositionalFormula}
+
+\begin{lstlisting}
+
+PropositionalFormula subclass: #BinaryPropositionalFormula
+	instanceVariableNames: 'firstFormula secondFormula operator'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Instancia}
+\begin{lstlisting}
+initWith: aFormula and: anotherFormula
+  firstFormula := aFormula. 
+  secondFormula := anotherFormula.
+
+setOperator: aOperator
+  operator := aOperator
+
+value: aValuation
+  |firstResult secondResult msg |
+  firstResult := firstFormula value: aValuation.
+  secondResult := secondFormula value: aValuation.
+  msg := Message selector: operator argument: secondResult.
+  ^ msg sendTo: firstResult.
+
+= aFormula
+  "Had to implement this short-circuit evaluation. 
+   If not, should have implemented my own Boolean
+   If didn't do this, UnaryPropositionalFormula and PropositionalVariables 
+   would have fail to understand secondFormula message
+   It's not their responsibility to even know that secondFormula message exists"
+
+  (self class == aFormula class) ifFalse: [ ^ false ].
+  ^ (firstFormula = (aFormula firstFormula)) and: 
+	(secondFormula = (aFormula secondFormula))
+
+hash 
+  ^ self class hash + firstFormula hash + secondFormula hash
+
+firstFormula
+  ^ firstFormula.
+
+secondFormula
+  ^ secondFormula.
+
+allPropVars
+  ^ firstFormula allPropVars union: secondFormula allPropVars.
+
+negate
+  ^ SubclassResponsibility
+
+withoutImplications
+  |firstResult secondResult msg |
+  firstResult := firstFormula withoutImplications. 
+  secondResult := secondFormula withoutImplications.
+  msg := Message selector: operator argument: secondResult.
+  ^ msg sendTo: firstResult.
+
+organizeNegations
+  |firstResult secondResult msg |
+  firstResult := firstFormula organizeNegations.
+  secondResult := secondFormula organizeNegations.
+  msg := Message selector: operator argument: secondResult.
+  ^ msg sendTo: firstResult.
+
+organizeNegationsFromNegation: aNegationFormula
+  ^ aNegationFormula organizeByNegating: self. 
+
+asString
+  | firstFormulaAsString secondFormulaAsString |
+  firstFormulaAsString := firstFormula representationAsStringIn: self.
+  secondFormulaAsString := secondFormula representationAsStringIn: self.
+  ^ firstFormulaAsString, self operatorAsString, secondFormulaAsString
+
+representationAsStringIn: aBinaryFormula
+  ^ aBinaryFormula asStringWithParenthesis: self.
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Clase}
+\begin{lstlisting}
+BinaryPropositionalFormula class
+  instanceVariableNames: ''
+
+of: aFormula and: anotherFormula
+  ^ self new initWith: aFormula and: anotherFormula
+
+of: aFormula
+  ^ ShouldNotImplement 
+
+\end{lstlisting}
+
+\subsection{Conjunction}
+
+\begin{lstlisting}
+BinaryPropositionalFormula subclass: #Conjunction
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+\end{lstlisting}
+
+\subsubsection{Métodos de Instancia}
+\begin{lstlisting}
+operatorAsString
+  ^ ' & '
+
+negate
+  ^ firstFormula negate | (secondFormula negate).
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Clase}
+
+\begin{lstlisting}
+
+Conjunction class
+	instanceVariableNames: ''
+
+of: aFormula and: anotherFormula
+	| formula |
+	formula := super of: aFormula and: anotherFormula.
+	^ formula setOperator: #&.
+\end{lstlisting}
+
+\subsection{Disjunction}
+
+\begin{lstlisting}
+
+BinaryPropositionalFormula subclass: #Disjunction
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+\end{lstlisting}
+
+\subsubsection{Métodos de Instancia}
+\begin{lstlisting}
+
+operatorAsString
+  ^ ' | '
+
+negate
+  ^ firstFormula negate & (secondFormula negate).
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Clase}
+
+\begin{lstlisting}
+Disjunction class
+	instanceVariableNames: ''
+
+of: aFormula and: anotherFormula
+	| formula |
+	formula := super of: aFormula and: anotherFormula.
+	^ formula setOperator: #|.
+
+\end{lstlisting}
+
+\subsection{Implication}
+
+\begin{lstlisting}
+
+BinaryPropositionalFormula subclass: #Implication
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Instancia}
+\begin{lstlisting}
+
+operatorAsString
+  ^ ' ==> '
+
+negate
+  ^ firstFormula & (secondFormula negate).
+
+withoutImplications
+  ^ (firstFormula not | secondFormula) withoutImplications
+
+organizeNegations
+  ^ ShouldNotImplement. 
+
+organizeNegationsFromNegation: aNegationFormula
+  ^ ShouldNotImplement.
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Clase}
+
+\begin{lstlisting}
+Implication class
+	instanceVariableNames: ''
+
+of: aFormula and: anotherFormula
+  | formula |
+  formula := super of: aFormula and: anotherFormula.
+  ^ formula setOperator: #==>.
+
+\end{lstlisting}
+
+\subsection{UnaryPropositionalFormula}
+
+\begin{lstlisting}
+
+PropositionalFormula subclass: #UnaryPropositionalFormula
+	instanceVariableNames: 'firstFormula'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+\end{lstlisting}
+
+\subsubsection{Métodos de Instancia}
+
+\begin{lstlisting}
+initWith: aFormula
+  firstFormula := aFormula.
+
+value: aValuation
+  ^ SubclassResponsibility
+
+= aFormula
+  "Had to implement this short-circuit evaluation. 
+   If not, should have implemented my own Boolean
+   If didn't do this, UnaryPropositionalFormula and PropositionalVariables 
+   would have fail to understand secondFormula message
+   It's not their responsibility to even know that secondFormula message exists"
+  (self class == aFormula class) ifFalse: [ ^ false ].
+  ^ (firstFormula = (aFormula firstFormula))
+
+hash 
+  ^ self class hash + firstFormula hash
+
+firstFormula
+  ^ firstFormula.
+
+allPropVars
+  ^ firstFormula allPropVars.
+
+negate
+  ^ SubclassResponsibility
+
+asString
+  | formulaAsString |
+  formulaAsString := firstFormula representationAsStringInNegation: self.
+  ^ self operatorAsString, formulaAsString
+
+representationAsStringIn: aBinaryFormula
+  ^ aBinaryFormula asStringWithoutParenthesis: self.
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Clase}
+\begin{lstlisting}
+ 
+UnaryPropositionalFormula class
+  instanceVariableNames: ''
+
+of: aFormula and: anotherFormula
+  ^ ShouldNotImplement
+
+of: aFormula
+  ^ self new initWith: aFormula
+\end{lstlisting}
+
+\subsection{Negation}
+
+\begin{lstlisting}
+
+UnaryPropositionalFormula subclass: #Negation
+	instanceVariableNames: ''
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Instancia}
+\begin{lstlisting}
+value: aValuation
+  ^ (firstFormula value: aValuation) not
+
+operatorAsString
+  El simbolo de negacion no anda en latex con los plugins usados.
+
+negate
+  ^ firstFormula.
+
+withoutImplications 
+  ^ firstFormula withoutImplications not
+
+organizeNegations
+  ^ firstFormula organizeNegationsFromNegation: self.
+
+organizeNegationsFromNegation: aNegationFormula
+  ^ aNegationFormula organizeByNegating: self.
+
+notOrganize: aFormula
+  ^ self.
+
+organizeByNegating: aFormula
+  ^ aFormula negate organizeNegations.
+
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Clase}
+
+\begin{lstlisting}
+Negation class
+	instanceVariableNames: ''
+
+of: aFormula and: anotherFormula
+	^ MessageNotUnderstood.
+
+\end{lstlisting}
+
+\subsection{PropositionalVariable}
+
+\begin{lstlisting}
+
+Object subclass: #PropositionalVariable
+	instanceVariableNames: 'name'
+	classVariableNames: ''
+	poolDictionaries: ''
+	category: 'PLP-TP3'
+
+
+\end{lstlisting}
+
+\subsubsection{Métodos de Instancia}
+\begin{lstlisting}
+not 
+  ^ Negation of: self
+
+& aFormula
+  ^ Conjunction of: self and: aFormula
+
+| aFormula
+  ^ Disjunction of: self and: aFormula
+
+==> aFormula
+  ^ Implication of: self and: aFormula
+
+initWith: aName
+  name := aName.
+
+value: aValuation
+  ^ aValuation includes: name.
+
+= aFormula
+  ^ (self class == aFormula class) and: (name = (aFormula name))
+
+allPropVars
+  ^ Set with: name 
+
+negate
+  ^ self not.
+
+withoutImplications 
+  ^ self
+
+organizeNegations
+  ^ self
+
+organizeNegationsFromNegation: aNegationFormula
+  ^ aNegationFormula notOrganize: self.
+
+asString
+  ^ name
+
+printString
+  ^ self asString
+
+representationAsStringIn: aBinaryFormula
+  ^ aBinaryFormula asStringWithoutParenthesis: self.
+
+representationAsStringInNegation: aNegationFormula
+  ^ aNegationFormula asStringWithoutParenthesis: self.
+
+\end{lstlisting}
+\subsubsection{Métodos de Clase}
+
+\begin{lstlisting}
+PropositionalVariable class
+	instanceVariableNames: ''
+
+named: aName
+	^ self new initWith: aName.
+
+ \end{lstlisting}
+	%~ \newpage
+	%~ \bibliographystyle{plain}
+	%~ \clearpage
+	%~ \bibliography{bibliography}
+	%~ \addcontentsline{toc}{section}{Referencias}
+
+\end{document}
