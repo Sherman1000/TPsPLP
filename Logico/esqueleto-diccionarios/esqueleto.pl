@@ -53,11 +53,8 @@ palabras(S, P) :- split_por_caracter(S, espacio, P).
 %Si se nos diera como variable fresca una que ya hemos utilizado antes nuestro predicado asignar_var se volveria inconsistente.
 
 
-asignar_var(A, MI, MF) :- get_keys(MI, Keys), 
-						  not(member(A, Keys)), 
-						  append(MI, [(A, _)], MF).
-asignar_var(A, MI, MI) :- get_keys(MI, Keys), 
-						  member(A, Keys).
+asignar_var(A, MI, MF) :- not(member((A, _), MI)), append(MI, [(A, _)], MF).
+asignar_var(A, MI, MI) :- member((A, _), MI).
 
 %get_keys(?Tuples, ?TMapped): Si ambas no están instanciadas, genera infinitos resultados.
 
@@ -108,30 +105,19 @@ cant_distintos([L | Ls], S) :- quitar(L, Ls, RQuitado),
 
 
 %Ejercicio 8
-descifrar(S, M) :- palabras(S, P), 	
+descifrar(S, M) :- palabras(S, P),
+				   cant_distintos(P, Pn), 	
 				   palabras_con_variables(P, V), 
-				   descifrarPalabras(V, Mvar), 
-				   juntar_con(Mvar, 32, PalabrasSeparadas), 
+				   descifrarPalabras(V),
+				   cant_distintos(V, Pn),
+				   juntar_con(V, 32, PalabrasSeparadas), 
 				   string_codes(M, PalabrasSeparadas).
 
-descifrarPalabras([], []).
-descifrarPalabras([Vs | Vss], Mvar) :- diccionario_lista(PalabraDelDicc), 
-									   palabra_valida(Vs, PalabraDelDicc, Mp), 
-									   descifrarPalabras(Vss, Mrec), 
-									   append([Mp], Mrec, Mvar).
-
-palabra_valida([], [], []).
-palabra_valida([Var | Vars], [P | Ps], M) :- length(Vars, Lv), 
-											 length(Ps, Lp), 
-											 Lv == Lp, 
-											 palabra_valida(Vars, Ps, Mrec), 
-											 esta_libre(Var, P, Ps),
-											 P = Var, 
-											 append([P], Mrec, M).
-
-esta_libre(_, _, []).										 
-esta_libre(Var, _, _) :- nonvar(Var).											 
-esta_libre(Var, P, [Pp | Ps]) :- var(Var), Pp \== P, esta_libre(Var, P, Ps).
+descifrarPalabras([]).
+descifrarPalabras([Vs | Vss]) :- cant_distintos(Vs, Pn),
+								 diccionario_lista(Vs), 
+								 cant_distintos(Vs, Pn),
+								 descifrarPalabras(Vss).
 											 
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M), necesariamente S debe estar instanciado para generar las posibles intercalaciones con espacio resultantes, que luego deberan ser descifradas.
@@ -144,7 +130,8 @@ descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SWithSpaces),
 %con_espacios_intercalados(+S, ?R)
 
 con_espacios_intercalados([], []).
-con_espacios_intercalados(S, SWithSpaces) :- append(SPref, SSuf, S), SPref \== [], 
+con_espacios_intercalados(S, SWithSpaces) :- append(SPref, SSuf, S), 
+											SPref \== [], 
 											intercalar_o_no(SPref, SSuf, SPrefIntercalado), 
 											con_espacios_intercalados(SSuf, SWithSpacesSuf), 
 											append(SPrefIntercalado, SWithSpacesSuf, SWithSpaces).
@@ -152,7 +139,7 @@ con_espacios_intercalados(S, SWithSpaces) :- append(SPref, SSuf, S), SPref \== [
 
 %intercalar_o_no(+P, +S, ?R)
 
-intercalar_o_no(Pref, [], Pref) :- !. 
+intercalar_o_no(Pref, [], Pref). 
 intercalar_o_no(Pref, _, PrefNuevo) :- append(Pref, [espacio], PrefNuevo).
 
 
@@ -183,34 +170,14 @@ calcular_desvio(Mensaje, Desvio) :- split_por_caracter(Mensaje, 32, MsjSeparados
 % En caso de que ListaDePalabras esté instanciado, Sentencia debe estar instanciado.
 
 split_por_caracter([], _, []).
-split_por_caracter(Sentencia, Caracter, ListaDePalabras) :- leer_hasta_caracter(Sentencia, Caracter, Palabra),
-														    borrar_hasta_caracter(Palabra, Caracter, Sentencia, SSinPalabra),
-										   					split_por_caracter(SSinPalabra, Caracter, RecListaDePalabras),
-										   					append([Palabra], RecListaDePalabras, ListaDePalabras), !.
+split_por_caracter(Sentencia, Caracter, Ll) :- quitar(Caracter, Sentencia, SentenciaSinC), generarListas(SentenciaSinC, Ll), juntar_con(Ll, Caracter, Sentencia).
 
+generarListas([], []).
+generarListas(Sentencia, R) :- prefixNoVacio(P, Sentencia), sufix(P, Sentencia, SentenciaSinP), generarListas(SentenciaSinP, Rec), append([P], Rec, R).
 
-%leer_hasta_caracter(+Caracteres, +CaracterSeparador, ?Palabra).
+prefixNoVacio(P, L) :- append(P, _, L), length(P, Long), Long > 0.
 
-leer_hasta_caracter(Caracteres, CaracterSeparador, Palabra) :- palabra_hasta_caracter(Caracteres, CaracterSeparador, [], Palabra).
-
-
-%palabra_hasta_caracter(+Cs, +CaracterSeparador, ?Accum, ?Palabra).
-% En caso de instanciarse Accum, debe tener relacion con lo puesto en Cs para que el algoritmo tenga sentido. Hay casos para los que funciona tener ?Cs, pero en otros se cuelga. 
-% Al igual que para Accum, esos casos deben tener sentido en el algoritmo. No se recomienda.
-
-palabra_hasta_caracter([], _, Palabra, Palabra).
-palabra_hasta_caracter([C|Cs], CaracterSeparador, Accum, Palabra) :- C\=CaracterSeparador,
-									  							  append(Accum, [C], AccumConCaracter),
-									  							  palabra_hasta_caracter(Cs, CaracterSeparador, AccumConCaracter, Palabra).
-palabra_hasta_caracter([C|_], CaracterSeparador, Palabra, Palabra) :- C==CaracterSeparador.
-
-
-%borrar_hasta_caracter(?Palabra, ?Caracter, ?Sentencia, ?SentenciaSinPalabra).
-%Siempre brinda una sola solución. 
-
-borrar_hasta_caracter(Palabra, Caracter, Sentencia, SentenciaSinPalabra) :- append(Palabra, [Caracter|SentenciaSinPalabra], Sentencia), !.
-borrar_hasta_caracter(Palabra, _, Sentencia, SentenciaSinPalabra) :- append(Palabra, SentenciaSinPalabra, Sentencia).
-
+sufix(Prefijo, Sentencia, Sufijo) :- append(Prefijo, Sufijo, Sentencia).
 
 %calcular_desvio_sobre_lista_de_palabras(+Palabras, ?Desvio).
 
