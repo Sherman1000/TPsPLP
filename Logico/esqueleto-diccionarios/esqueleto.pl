@@ -56,11 +56,6 @@ palabras(S, P) :- split_por_caracter(S, espacio, P).
 asignar_var(A, MI, MF) :- not(member((A, _), MI)), append(MI, [(A, _)], MF).
 asignar_var(A, MI, MI) :- member((A, _), MI).
 
-%get_keys(?Tuples, ?TMapped): Si ambas no están instanciadas, genera infinitos resultados.
-
-get_keys([], []).
-get_keys([(Key, _) | Ts], TMapped) :- get_keys(Ts, Trec), 
-									  append([Key], Trec, TMapped).
 
 %Ejercicio 5
 %palabras_con_variables(+L, ?V): Si L no estuviera instanciado, no se rompe pero genera infinitos resultados inservibles con combinaciones de listas vacias. Esto sucede debido
@@ -105,6 +100,9 @@ cant_distintos([L | Ls], S) :- quitar(L, Ls, RQuitado),
 
 
 %Ejercicio 8
+%descifrar(+S, ?M): S deberá estar instanciado. M podrá no estar instanciado, por lo que devolverá el resultado de descifrar, o puede estar instanciado y 
+%retornará verdadero o falso. Básicamente sucede debido a la instanciación de "palabras". Se analizará en el ejercicio 10.
+
 descifrar(S, M) :- palabras(S, P),
 				   cant_distintos(P, Pn), 	
 				   palabras_con_variables(P, V), 
@@ -112,6 +110,8 @@ descifrar(S, M) :- palabras(S, P),
 				   cant_distintos(V, Pn),
 				   juntar_con(V, 32, PalabrasSeparadas), 
 				   string_codes(M, PalabrasSeparadas).
+
+%descifrarPalabras(?Ls): Si no se instancia Ls, generará infinitas listas. Se recomienda utilizar instanciada con lista de variables.
 
 descifrarPalabras([]).
 descifrarPalabras([Vs | Vss]) :- cant_distintos(Vs, Pn),
@@ -121,7 +121,7 @@ descifrarPalabras([Vs | Vss]) :- cant_distintos(Vs, Pn),
 											 
 %Ejercicio 9
 %descifrar_sin_espacios(+S, ?M), necesariamente S debe estar instanciado para generar las posibles intercalaciones con espacio resultantes, que luego deberan ser descifradas.
-%Si no estuviera instanciada la S podria instanciarse en secuencias, potencialmente infinitas, que nunca daran una oracion valida considerando el diccionario cargado actual.
+%Si no estuviera instanciada la S podria instanciarse en secuencias, potencialmente infinitas, que nunca daran una oración valida considerando el diccionario cargado actual.
 
 descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SWithSpaces),  
 								descifrar(SWithSpaces, M).
@@ -166,18 +166,30 @@ calcular_desvio(Mensaje, Desvio) :- split_por_caracter(Mensaje, 32, MsjSeparados
 								    calcular_desvio_sobre_lista_de_palabras(MsjSeparadosPorEspacio, Desvio).
 
 
-%split_por_caracter(?Sentencia, +Caracter, ?ListaDePalabras).
-% En caso de que ListaDePalabras esté instanciado, Sentencia debe estar instanciado.
+%split_por_caracter(+Sentencia, +Caracter, ?Ll).
+% Sentencia debe estar siempre instanciado debido al uso de "quitar". En caso de no estar instanciado Caracter, el algoritmo termina aunque con funcionamiento extraño.
+% Splitea correctamente, sin embargo, Caracter se va unificando con los valores la lista haciendo que se comporte incorrectamente. Se recomienda uso instanciado.
+
 
 split_por_caracter([], _, []).
 split_por_caracter(Sentencia, Caracter, Ll) :- quitar(Caracter, Sentencia, SentenciaSinC), generarListas(SentenciaSinC, Ll), juntar_con(Ll, Caracter, Sentencia).
 
+
+%generarListas(+Sentencia, ?R): No puede estar instanciado R y no Sentencia. En caso de no estar instanciados ambos, se generan infinitos resultados. 
+
 generarListas([], []).
 generarListas(Sentencia, R) :- prefixNoVacio(P, Sentencia), sufix(P, Sentencia, SentenciaSinP), generarListas(SentenciaSinP, Rec), append([P], Rec, R).
 
+
+%prefixNoVacio(?P, ?L): En caso de estar los dos no instanciados, genera infinitos resultados.
+
 prefixNoVacio(P, L) :- append(P, _, L), length(P, Long), Long > 0.
 
+
+%sufix(?Prefijo, ?Sentencia, ?Sufijo): misma instanciación que append. En caso de estar todos sin instanciar, se generan infinitos resultados.
+
 sufix(Prefijo, Sentencia, Sufijo) :- append(Prefijo, Sufijo, Sentencia).
+
 
 %calcular_desvio_sobre_lista_de_palabras(+Palabras, ?Desvio).
 

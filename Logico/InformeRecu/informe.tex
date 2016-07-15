@@ -1,0 +1,313 @@
+\documentclass[spanish, 10pt,a4paper]{article}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{hyperref}
+\usepackage[pdftex]{graphicx}
+\usepackage{epsfig}
+\usepackage{amsmath}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\usepackage{color}
+\usepackage{graphics}
+\usepackage{amsthm}
+\usepackage{subcaption}
+\usepackage{caratula}
+\usepackage{fancyhdr,lastpage}
+\usepackage[paper=a4paper, left=1.4cm, right=1.4cm, bottom=1.4cm, top=1.4cm]{geometry}
+\usepackage[table]{xcolor} % color en las matrices
+\usepackage[font=small,labelfont=bf]{caption} % caption de las figuras en letra mas chica que el texto
+\usepackage{listings}
+\usepackage{float}
+\usepackage{pdfpages}
+\usepackage{amsfonts}
+
+
+\color{black}
+
+%%%PAGE LAYOUT%%%
+\topmargin = -1.2cm
+\voffset = 0cm
+\hoffset = 0em
+\textwidth = 48em
+\textheight = 164 ex
+\oddsidemargin = 0.5 em
+\parindent = 2 em
+\parskip = 3 pt
+\footskip = 7ex
+\headheight = 20pt
+\pagestyle{fancy}
+\lhead{PLP - Recuperatorio Trabajo Pr\'actico 2} % cambia la parte izquierda del encabezado
+\renewcommand{\sectionmark}[1]{\markboth{#1}{}} % cambia la parte derecha del encabezado
+\rfoot{\thepage}
+\cfoot{}
+\numberwithin{equation}{section} %sets equation numbers <chapter>.<section>.<subsection>.<index>
+
+\newcommand{\figurewidth}{1\textwidth}
+
+\newcommand{\tuple}[1]{\ensuremath{\left \langle #1 \right \rangle }}
+\newcommand{\Ode}[1]{\small{$\mathcal{O}(#1)$}}
+
+\input{caratula.tex} 
+\begin{document}
+{ \oddsidemargin = 2em
+	\headheight = -20pt
+	\maketitle
+}
+	\tableofcontents
+	\newpage
+
+\section{Correcciones sobre primera entrega}
+Se realizaron principalmente cuatro modificaciones. 
+\begin{itemize}
+\item asignar\_var fue modificada para no utilizar listas intermedias y aprovechar \textit{member}.
+\item Se rehizo descifrar para realizar la unificación a nivel de lista y no de elemento como estaba en el TP anterior. Además, recordemos que esta operación no funcionaba en la primera entrega. Se utilizó cant\_distintos para evitar la unificación de una letra con más de un símbolo y de uno solo de estos con una letra.
+\item Se reemplazó la implementación de split\_por\_caracter por una que aprovechase de \textit{append} a partir de \textit{Generate} \& \textit{Test}.
+\item Se modificó levemente con\_espacios\_intercalados para evitar usar un cut innecesario en intercalar\_o\_no. Básicamente genera toda combinación de espacios aprovechándonos de la forma de ejecución de Prolog.
+\end{itemize}
+
+\section{Código}
+
+\subsection{Ejercicio 1}
+
+\begin{itemize}
+\item diccionario\_lista(?Lcode): la reversibilidad depende de la reversibilidad de string\_codes, la cual es string\_codes(?String, ?Codes).
+\end{itemize}
+\begin{lstlisting}
+diccionario_lista(Lcode) :- diccionario(PalabraDelDicc), 
+			    string_codes(PalabraDelDicc, Lcode). 
+\end{lstlisting}
+
+\subsection{Ejercicio 2}
+
+\begin{itemize}
+\item juntar\_con(+S, ?J , ?R): Si no se instancia S, el predicado no funciona correctamente (aunque no se cuelga) por la forma en que se realizan los Appends. 
+J puede ser una variable que, si R está instanciado, terminará unificándose. Si no, appendeará a la variable J.
+\end{itemize}
+\begin{lstlisting}
+juntar_con([L], _ , L).
+juntar_con([Ls | Lss], J, R) :- juntar_con(Lss, J, Rrec), 
+				append(RPref, Rrec, R), 
+				append(Ls, [J], RPref),!.  
+\end{lstlisting}
+
+\subsection{Ejercicio 3}
+
+\begin{itemize}
+\item palabras(+S, ?P): Los motivos por los que S debe estar instanciado se muestran en el análisis de split\_por\_caracter. El mismo se encuentra en el ejercicio 10.
+\end{itemize}
+\begin{lstlisting}
+palabras(S, P) :- split_por_caracter(S, espacio, P).  
+\end{lstlisting}
+
+\subsection{Ejercicio 4}
+
+\begin{itemize}
+\item asignar\_var(?A, +MI, ?MF): Si MI no está instanciado, se cuelga cuando trata de encontrar otra solución más que MI = [] y MF = A, debido a que genera
+combinaciones con listas infinitas. A o MF deben estar instanciados. No pueden no estar instanciados al mismo tiempo.
+
+\item Este ejercicio funciona gracias a la capacidad de ProLog de generar variables frescas bajo demanda utilizando 
+variables anonimas generadas con la keyword "\_", ademas, la manera de representar dichas variables frescas ayuda para que estas puedan ser manipulables dentro de los predicados.
+Si se nos diera como variable fresca una que ya hemos utilizado antes nuestro predicado asignar\_var se volveria inconsistente.
+\end{itemize}
+\begin{lstlisting}
+
+asignar_var(A, MI, MF) :- not(member((A, _), MI)), 
+			  append(MI, [(A, _)], MF).
+asignar_var(A, MI, MI) :- member((A, _), MI).
+
+\end{lstlisting}
+
+\subsection{Ejercicio 5}
+
+\begin{itemize}
+\item palabras\_con\_variables(+L, ?V): Si L no estuviera instanciado, no se rompe pero genera infinitos resultados inservibles con combinaciones de listas vacias. Esto sucede debido a la utilización de member().
+\item palabras\_con\_var\_y\_mapa(+L, ?V, +Mi, -Mf)
+\item pares\_definidos\_en\_mapa(+L, ?V, +Mi, -Mf)
+\end{itemize}
+\begin{lstlisting}
+palabras_con_variables(L, V) :- palabras_con_var_y_mapa(L, V, [], _).
+
+palabras_con_var_y_mapa([], [], Mf, Mf).
+palabras_con_var_y_mapa([Ls | Lss], [Vs | Vss], M, Mf1) :- 
+				pares_definidos_en_mapa(Ls, Vs, M, Mf0), 
+				palabras_con_var_y_mapa(Lss, Vss, Mf0, Mf1).
+
+pares_definidos_en_mapa([], [], Mf, Mf).
+pares_definidos_en_mapa([X | Ls], [V | Vs], Mi0, Mf) :-
+				asignar_var(X, Mi0 , Mi1), 
+				member((X,V), Mi1), 
+				pares_definidos_en_mapa(Ls, Vs, Mi1, Mf).
+\end{lstlisting}
+
+
+\subsection{Ejercicio 6}
+
+\begin{itemize}
+\item quitar(?E, +Ls, ?R): E puede no estar instanciado ya que el algoritmo también elimina variables en caso de estar. Ls deberá estar instanciada para evitar la generación de 
+listas infinitas. Si no esta instanciado, devuelve una solución trivial y luego se cuelga cuando se pide otra (debido al uso de append).
+\end{itemize}
+\begin{lstlisting}
+quitar(_, [], R) :- R = [].
+quitar(E, [L|Ls], R) :- E == L, quitar(E, Ls, R).
+quitar(E, [L|Ls], R) :- E \== L, quitar(E, Ls, Rrec), 
+			append([L], Rrec, R).
+\end{lstlisting}
+
+
+\subsection{Ejercicio 7}
+
+\begin{itemize}
+\item cant\_distintos(+Ls, ?S): Ls deberá estar instanciado para evitar la generación de listas infinitas. Si no esta instanciado, devuelve una solución trivial y luego se cuelga 
+cuando se pide otra (debido al uso de quitar(), quien termina llamando a append()).
+\end{itemize}
+\begin{lstlisting}
+cant_distintos([], S) :- S = 0.
+cant_distintos([L | Ls], S) :- quitar(L, Ls, RQuitado), 
+			       cant_distintos(RQuitado, CuentaRec), 
+			        S is (1 + CuentaRec).
+\end{lstlisting}
+
+
+\subsection{Ejercicio 8}
+
+\begin{itemize}
+\item descifrar(+S, ?M): S deberá estar instanciado. M podrá no estar instanciado, por lo que devolverá el resultado de descifrar, o puede estar instanciado y retornará verdadero o falso. Básicamente sucede debido a la instanciación de ``palabras". Se analizará en el ejercicio 10.
+
+\item descifrarPalabras(?Ls): Si no se instancia Ls, generará infinitas listas. Se recomienda utilizar instanciada con lista de variables.
+\end{itemize}
+\begin{lstlisting}
+descifrar(S, M) :- palabras(S, P),
+		   cant_distintos(P, Pn), 	
+		   palabras_con_variables(P, V), 
+		   descifrarPalabras(V),
+		   cant_distintos(V, Pn),
+		   juntar_con(V, 32, PalabrasSeparadas), 
+		   string_codes(M, PalabrasSeparadas).
+
+descifrarPalabras([]).
+descifrarPalabras([Vs | Vss]) :- cant_distintos(Vs, Pn),
+			 	 diccionario_lista(Vs), 
+				 cant_distintos(Vs, Pn),
+				 descifrarPalabras(Vss).
+											 
+\end{lstlisting}
+
+
+\subsection{Ejercicio 9}
+
+\begin{itemize}
+\item descifrar\_sin\_espacios(+S, ?M), necesariamente S debe estar instanciado para generar las posibles intercalaciones con espacio resultantes, que luego deberan ser descifradas.
+Si no estuviera instanciada la S podria instanciarse en secuencias, potencialmente infinitas, que nunca daran una oracion valida considerando el diccionario cargado actual.
+\item con\_espacios\_intercalados(+S, ?R)
+\item intercalar\_o\_no(+P, +S, ?R)
+\end{itemize}
+\begin{lstlisting}
+descifrar_sin_espacios(S, M) :- con_espacios_intercalados(S, SWithSpaces),  
+				descifrar(SWithSpaces, M).
+
+con_espacios_intercalados([], []).
+con_espacios_intercalados(S, SWithSpaces) :- 
+			append(SPref, SSuf, S), SPref \== [], 
+			intercalar_o_no(SPref, SSuf, SPrefIntercalado), 
+			con_espacios_intercalados(SSuf, SWithSpacesSuf), 
+			append(SPrefIntercalado, SWithSpacesSuf, SWithSpaces).
+
+intercalar_o_no(Pref, [], Pref). 
+intercalar_o_no(Pref, _, PrefNuevo) :- append(Pref, [espacio], PrefNuevo).
+											 
+\end{lstlisting}
+
+
+\subsection{Ejercicio 10}
+
+\begin{itemize}
+\item mensajes\_mas\_parejos(+S, ?M): S debe estar instanciada en particular, por el uso de descifrar\_sin\_espacios(). 
+\item hay\_uno\_menor(+DesvioM, +S).
+\item calcular\_desvio(+Mensaje, ?Desvio).
+\item split\_por\_caracter(+Sentencia, +Caracter, ?Ll).
+Sentencia debe estar siempre instanciado debido al uso de "quitar". En caso de no estar instanciado Caracter, el algoritmo termina aunque con funcionamiento extraño.
+ Splitea correctamente, sin embargo, Caracter se va unificando con los valores la lista haciendo que se comporte incorrectamente. Se recomienda uso instanciado.
+\item generarListas(+Sentencia, ?R): No puede estar instanciado R y no Sentencia. En caso de no estar instanciados ambos, se generan infinitos resultados. 
+\item prefixNoVacio(?P, ?L): En caso de estar los dos no instanciados, genera infinitos resultados.
+\item sufix(?Prefijo, ?Sentencia, ?Sufijo): misma instanciación que append. En caso de estar todos sin instanciar, se generan infinitos resultados.
+\item calcular\_desvio\_sobre\_lista\_de\_palabras(+Palabras, ?Desvio).
+\item calcular\_longitud\_media(+P, ?LongMedia).
+\item length\_list(+Ls, ?LList).
+\item average(+List, ?Average).
+\item binomios\_cuadrados(+Ps, +LongMedia, -BCuadrados).
+\item binomio\_cuadrado(?P, +LongMedia, -BCuadrado).  
+\end{itemize}
+\begin{lstlisting}
+mensajes_mas_parejos(S, M) :- descifrar_sin_espacios(S, M), 
+			      string_codes(M, L),
+  			      calcular_desvio(L, DesvioM), 
+			      not(hay_uno_menor(DesvioM, S)).
+
+hay_uno_menor(DesvioM, S) :- descifrar_sin_espacios(S, MComparador),
+			     string_codes(MComparador, LComparador),
+			     calcular_desvio(LComparador, DesvioComp),
+			     DesvioM > DesvioComp.
+
+calcular_desvio(Mensaje, Desvio) :- 
+	split_por_caracter(Mensaje, 32, MsjSeparadosPorEspacio), 
+	calcular_desvio_sobre_lista_de_palabras(MsjSeparadosPorEspacio, Desvio).
+
+split_por_caracter([], _, []).
+split_por_caracter(Sentencia, Caracter, Ll) :-
+			      quitar(Caracter, Sentencia, SentenciaSinC), 
+			      generarListas(SentenciaSinC, Ll),
+			      juntar_con(Ll, Caracter, Sentencia).
+
+generarListas([], []).
+generarListas(Sentencia, R) :- prefixNoVacio(P, Sentencia), 
+			       sufix(P, Sentencia, SentenciaSinP), 
+			       generarListas(SentenciaSinP, Rec), 
+			       append([P], Rec, R).
+
+prefixNoVacio(P, L) :- append(P, _, L), length(P, Long), Long > 0.
+
+sufix(Prefijo, Sentencia, Sufijo) :- append(Prefijo, Sufijo, Sentencia).
+
+calcular_desvio_sobre_lista_de_palabras(Palabras, Desvio) :- 
+		calcular_longitud_media(Palabras, LongMedia), 
+		binomios_cuadrados(Palabras, LongMedia, BCuadrados), 
+		sum_list(BCuadrados, Sumatoria), 
+		length(Palabras, LPalabras), Division is Sumatoria / LPalabras, 
+		Desvio is sqrt(Division).
+
+calcular_longitud_media(P, LongMedia) :- length_list(P, LengthList), 
+					 average(LengthList, LongMedia).
+
+length_list([L | Ls], LList) :- append([LLength], LListRec, LList), 
+				length_list(Ls, LListRec),
+				length(L, LLength),!. 
+length_list([L], LList) :- length(L, LLength), LList = [LLength].
+
+average(List, Average):- sum_list(List, Sum), 
+			 length(List, Length), 
+			 Length > 0, 
+			 Average is (Sum / Length).
+
+
+binomios_cuadrados([P], LongMedia, [BCuadrado]) :- 
+		binomio_cuadrado(P, LongMedia, BCuadrado). 
+binomios_cuadrados([P | Ps], LongMedia, BCuadrados) :- 
+		append([BCuadrado], RecBCuadrados, BCuadrados), 
+		binomios_cuadrados(Ps, LongMedia, RecBCuadrados), 
+		binomio_cuadrado(P, LongMedia, BCuadrado),!.
+
+binomio_cuadrado(P, LongMedia, BCuadrado) :- length(P, LongP), 
+					     Resta is (LongP-LongMedia), 
+					     BCuadrado is (Resta^2).
+											 
+\end{lstlisting}
+
+
+	%~ \newpage
+	%~ \bibliographystyle{plain}
+	%~ \clearpage
+	%~ \bibliography{bibliography}
+	%~ \addcontentsline{toc}{section}{Referencias}
+
+\end{document}
